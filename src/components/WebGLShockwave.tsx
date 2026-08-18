@@ -23,25 +23,26 @@ const fragmentShaderSource = `
   // Authentic Natural Rainbow Spectral Curve (Deep, rich, saturated ROYGBIV spectrum)
   vec3 getAuthenticRainbow(float t) {
     t = clamp(t, 0.0, 1.0);
-    // Red -> Orange -> Golden Yellow -> Lush Emerald Green -> Pure Cyan -> Deep Royal Blue/Indigo -> Rich Violet
+    // Hyper-vibrant Cybernetic Spectrum
+    // Hot Pink/Magenta -> Electric Orange -> Neon Yellow -> Acid Green -> Cyber Cyan -> Deep Indigo -> Purple
     if (t < 0.166) {
       float f = t / 0.166;
-      return mix(vec3(1.00, 0.02, 0.10), vec3(1.00, 0.44, 0.00), f);
+      return mix(vec3(1.00, 0.0, 0.50), vec3(1.00, 0.30, 0.00), f) * 1.3;
     } else if (t < 0.333) {
       float f = (t - 0.166) / 0.167;
-      return mix(vec3(1.00, 0.44, 0.00), vec3(1.00, 0.92, 0.00), f);
+      return mix(vec3(1.00, 0.30, 0.00), vec3(1.00, 0.95, 0.00), f) * 1.3;
     } else if (t < 0.500) {
       float f = (t - 0.333) / 0.167;
-      return mix(vec3(1.00, 0.92, 0.00), vec3(0.00, 0.98, 0.35), f);
+      return mix(vec3(1.00, 0.95, 0.00), vec3(0.00, 1.00, 0.20), f) * 1.3;
     } else if (t < 0.666) {
       float f = (t - 0.500) / 0.166;
-      return mix(vec3(0.00, 0.98, 0.35), vec3(0.00, 0.85, 1.00), f);
+      return mix(vec3(0.00, 1.00, 0.20), vec3(0.00, 0.95, 1.00), f) * 1.3;
     } else if (t < 0.833) {
       float f = (t - 0.666) / 0.167;
-      return mix(vec3(0.00, 0.85, 1.00), vec3(0.20, 0.18, 1.00), f);
+      return mix(vec3(0.00, 0.95, 1.00), vec3(0.10, 0.10, 1.00), f) * 1.3;
     } else {
       float f = (t - 0.833) / 0.167;
-      return mix(vec3(0.20, 0.18, 1.00), vec3(0.88, 0.04, 0.92), f);
+      return mix(vec3(0.10, 0.10, 1.00), vec3(0.90, 0.0, 1.00), f) * 1.3;
     }
   }
 

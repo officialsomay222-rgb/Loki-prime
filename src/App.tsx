@@ -383,6 +383,13 @@ export default function App() {
     return result;
   }, [sessions, timelineSearchQuery]);
 
+  const rowVirtualizer = useVirtualizer({
+    count: currentSession?.messages.length || 0,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize: () => 140, // Responsive baseline for chat bubbles
+    overscan: 5,
+  });
+
   // Scroll to bottom when messages change, stream content arrives, or response finishes loading fully
   useEffect(() => {
     if (autoScroll && currentSession && currentSession.messages.length > 0) {
@@ -416,6 +423,7 @@ export default function App() {
     isLoading,
     currentSessionId,
     autoScroll,
+    rowVirtualizer.getTotalSize(), // Crucial: trigger scroll when virtual list height changes
   ]);
 
   // Use IntersectionObserver to toggle scroll-to-bottom button
@@ -535,13 +543,6 @@ export default function App() {
       deleteMessage(currentSessionId, id);
     }
   }, [currentSessionId, deleteMessage]);
-
-  const rowVirtualizer = useVirtualizer({
-    count: currentSession?.messages.length || 0,
-    getScrollElement: () => scrollContainerRef.current,
-    estimateSize: () => 140, // Responsive baseline for chat bubbles
-    overscan: 5,
-  });
 
   const renderedMessages = (
     <div
@@ -1071,7 +1072,7 @@ export default function App() {
               ) : (
                 <>
                   {renderedMessages}
-                  <div ref={messagesEndRef} className="h-64 sm:h-80 shrink-0 pointer-events-none" />
+                  <div ref={messagesEndRef} className="h-80 sm:h-96 shrink-0 pointer-events-none" />
                 </>
               )}
             </div>
