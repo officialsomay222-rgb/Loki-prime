@@ -766,7 +766,7 @@ export default function App() {
             <button
               onClick={() => setIsSidebarOpen(false)}
               aria-label="Close Sidebar"
-              className={`w-9 h-9 rounded-full flex items-center justify-center border border-slate-200/80 dark:border-white/10 transition-all ${isAwakened && theme === "light" ? "bg-slate-100 hover:bg-slate-200 text-slate-700" : "bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-700 dark:text-white"} shadow-sm active:scale-95`}
+              className={`w-9 h-9 aspect-square rounded-full flex items-center justify-center shrink-0 border border-slate-200/80 dark:border-white/10 transition-all ${isAwakened && theme === "light" ? "bg-slate-100 hover:bg-slate-200 text-slate-700" : "bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-700 dark:text-white"} shadow-sm active:scale-95`}
             >
               <PanelLeftClose className="w-4 h-4" />
             </button>
@@ -909,9 +909,9 @@ export default function App() {
                 <button
                   onClick={() => setIsSidebarOpen(true)}
                   aria-label="Open Sidebar"
-                  className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100/85 dark:bg-white/10 hover:bg-slate-200/90 dark:hover:bg-white/20 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-white shadow-sm backdrop-blur-md transition-all active:scale-95"
+                  className="w-10 h-10 aspect-square rounded-full flex items-center justify-center shrink-0 bg-white/80 dark:bg-[#0a0a10]/80 hover:bg-white dark:hover:bg-white/15 border border-slate-200/90 dark:border-white/15 text-slate-700 dark:text-[#f0f0f5] shadow-sm backdrop-blur-md transition-all active:scale-95"
                 >
-                  <PanelLeftOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <PanelLeftOpen className="w-5 h-5 shrink-0" />
                 </button>
               )}
             </div>
@@ -922,36 +922,36 @@ export default function App() {
                 ?.role === "model" &&
               currentSession?.messages[currentSession.messages.length - 2]
                 ?.isImage ? (
-                <div className="inline-flex items-center gap-2 sm:gap-3 px-4 py-1.5 sm:px-5 sm:py-2 rounded-full border border-cyan-500/40 bg-white/80 dark:bg-[#0a0a10]/80 backdrop-blur-md shadow-[0_0_15px_rgba(0,242,255,0.2)] animate-in fade-in zoom-in duration-300">
-                  <div className="flex items-center gap-2 sm:gap-3 font-montserrat font-bold text-xs sm:text-sm tracking-[1px] sm:tracking-[2px] text-cyan-500 dark:text-cyan-400">
-                    <div className="w-5 h-2.5 sm:w-8 sm:h-4">
+                <div className="inline-flex items-center justify-center h-10 px-4 sm:px-5 rounded-full border border-cyan-500/40 bg-white/80 dark:bg-[#0a0a10]/80 backdrop-blur-md shadow-[0_0_15px_rgba(0,242,255,0.2)] animate-in fade-in zoom-in duration-300 shrink-0">
+                  <div className="flex items-center gap-2 sm:gap-3 font-montserrat font-bold text-xs sm:text-sm tracking-[1px] sm:tracking-[2px] text-cyan-500 dark:text-cyan-400 leading-none">
+                    <div className="w-5 h-2.5 sm:w-8 sm:h-4 shrink-0">
                       <HeaderInfinityLogo />
                     </div>
                     <span className="animate-pulse font-extrabold text-[0.7rem] sm:text-xs">GENERATING</span>
-                    <span className="flex gap-1">
+                    <span className="flex gap-1 items-center">
                       <span
-                        className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-cyan-400 rounded-full animate-bounce"
+                        className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce"
                         style={{ animationDelay: "0ms" }}
                       ></span>
                       <span
-                        className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-cyan-400 rounded-full animate-bounce"
+                        className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce"
                         style={{ animationDelay: "150ms" }}
                       ></span>
                       <span
-                        className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-cyan-400 rounded-full animate-bounce"
+                        className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce"
                         style={{ animationDelay: "300ms" }}
                       ></span>
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="inline-flex items-center gap-2 sm:gap-3 px-4 py-1.5 sm:px-5 sm:py-2 rounded-full border border-slate-200/90 dark:border-white/15 bg-white/80 dark:bg-[#0a0a10]/80 backdrop-blur-md shadow-sm transition-all hover:border-cyan-500/40">
-                  <h1 className="flex items-center gap-1.5 sm:gap-2.5 font-montserrat font-bold text-sm sm:text-base tracking-[1.5px] sm:tracking-[2.5px] text-slate-900 dark:text-[#f0f0f5]">
+                <div className="inline-flex items-center justify-center h-10 px-4 sm:px-5 rounded-full border border-slate-200/90 dark:border-white/15 bg-white/80 dark:bg-[#0a0a10]/80 backdrop-blur-md shadow-sm transition-all hover:border-cyan-500/40 shrink-0">
+                  <h1 className="flex items-center gap-1.5 sm:gap-2.5 font-montserrat font-bold text-sm sm:text-base tracking-[1.5px] sm:tracking-[2.5px] text-slate-900 dark:text-[#f0f0f5] leading-none">
                     <span className="font-extrabold tracking-[1.5px] sm:tracking-[2.5px]">LOKI</span>
-                    <div className="w-6 h-3 sm:w-9 sm:h-4.5 flex items-center justify-center">
+                    <div className="w-6 h-3 sm:w-9 sm:h-4.5 flex items-center justify-center shrink-0">
                       <HeaderInfinityLogo />
                     </div>
-                    <span className="text-[0.55rem] sm:text-[0.65rem] tracking-[1.5px] sm:tracking-[2.5px] font-black px-2 py-0.5 rounded-full border border-cyan-500/50 dark:border-[#00f2ff]/50 text-cyan-600 dark:text-[#00f2ff] shadow-[0_0_10px_rgba(0,242,255,0.25)] bg-cyan-500/10">
+                    <span className="text-[0.55rem] sm:text-[0.65rem] tracking-[1.5px] sm:tracking-[2.5px] font-black px-2 py-0.5 rounded-full border border-cyan-500/50 dark:border-[#00f2ff]/50 text-cyan-600 dark:text-[#00f2ff] shadow-[0_0_10px_rgba(0,242,255,0.25)] bg-cyan-500/10 shrink-0 leading-tight">
                       PRIME
                     </span>
                   </h1>
@@ -961,7 +961,7 @@ export default function App() {
 
             <div className="flex items-center justify-end gap-2 sm:gap-4 flex-1 pointer-events-auto">
               <div
-                className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full cursor-pointer flex justify-center items-center hover:scale-105 transition-all ${awakening ? "opacity-0" : "opacity-100"}`}
+                className={`relative w-10 h-10 aspect-square rounded-full cursor-pointer flex justify-center items-center shrink-0 hover:scale-105 transition-all ${awakening ? "opacity-0" : "opacity-100"}`}
                 title={commanderName}
                 onClick={triggerAwakening}
                 onMouseDown={() => setIsAvatarActive(true)}
@@ -973,7 +973,7 @@ export default function App() {
                 <AvatarShockwave isActive={isAvatarActive} />
                 {(isAwakened || effectAvatar) && (
                   <div
-                    className="absolute -inset-[2.5px] rounded-full z-[1] opacity-100 animate-spin-aura"
+                    className="absolute -inset-[2.5px] rounded-full z-[1] opacity-100 animate-spin-aura pointer-events-none"
                     style={{
                       background:
                         "conic-gradient(from 0deg, #ff0000, #ff7f00, #ffff00, #00ff00, #00f0ff, #bd00ff, #ff00ff, #ff0000)",
@@ -981,10 +981,10 @@ export default function App() {
                     }}
                   ></div>
                 )}
-                <div className={`w-full h-full rounded-full overflow-hidden z-[2] relative ${(isAwakened || effectAvatar) ? "border-2 border-white dark:border-[#08080c] shadow-md" : "border border-slate-200 dark:border-white/20 shadow-sm"}`}>
+                <div className={`w-10 h-10 aspect-square rounded-full overflow-hidden z-[2] relative shrink-0 ${(isAwakened || effectAvatar) ? "border-2 border-white dark:border-[#08080c] shadow-md" : "border border-slate-200/90 dark:border-white/20 shadow-sm"}`}>
                   <img
                     src="/Picsart-26-02-28-11-29-26-443.jpg"
-                    className="w-full h-full object-cover rounded-full"
+                    className="w-full h-full object-cover rounded-full aspect-square block"
                     alt="Commander"
                   />
                 </div>
