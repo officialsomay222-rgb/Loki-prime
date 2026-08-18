@@ -327,9 +327,11 @@ app.post("/api/chat", async (req, res) => {
         res.end();
 
       } else {
-        // Fast, Pro and Happy modes (without Gemini-specific features) use Groq or HuggingFace
-        if (!groqKey && !hfKey) {
-          return res.status(400).json({ error: "Groq or HuggingFace API Key is missing. Please add 'GROQ_API_KEY' or 'HF_TOKEN' to your AI Studio Secrets to enable Fast/Pro/Happy models." });
+        // Fast, Pro and Happy modes (without Gemini-specific features) use Groq, HuggingFace, or Gemini fallback
+        if (!groqKey && !hfKey && !apiKey) {
+          return res.status(400).json({ 
+            error: "AI API Key is missing. Please add 'GROQ_API_KEY', 'GEMINI_API_KEY', or 'HF_TOKEN' to your environment / Netlify variables to enable AI generation." 
+          });
         }
 
         const messages: any[] = [];
@@ -393,6 +395,42 @@ app.post("/api/chat", async (req, res) => {
             const content = chunk.choices[0]?.delta?.content || "";
             if (content) {
               res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
+            }
+          }
+        } else if (apiKey) {
+          // Intelligent Gemini fallback when Google AI / Gemini Key is provided
+          const ai = new GoogleGenAI({ apiKey });
+          const modelName = mode === "pro" ? "gemini-2.5-flash" : "gemini-3.1-flash-lite-preview";
+
+          const contents: any[] = [];
+          if (history && Array.isArray(history)) {
+            history.forEach((msg: any) => {
+              if (msg.parts && msg.parts[0] && msg.parts[0].text) {
+                contents.push({
+                  role: msg.role === 'model' || msg.role === 'assistant' ? 'model' : 'user',
+                  parts: [{ text: msg.parts[0].text }]
+                });
+              }
+            });
+          }
+          contents.push({ role: 'user', parts: [{ text: finalMessage }] });
+
+          const responseStream = await ai.models.generateContentStream({
+            model: modelName,
+            contents: contents,
+            config: {
+              systemInstruction: systemInstruction,
+              temperature: temperature || 0.7,
+              topP: topP || 0.95,
+              topK: topK || 64,
+            }
+          });
+
+          setupSSE();
+
+          for await (const chunk of responseStream) {
+            if (chunk.text) {
+              res.write(`data: ${JSON.stringify({ text: chunk.text })}\n\n`);
             }
           }
         }

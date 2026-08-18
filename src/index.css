@@ -25,7 +25,16 @@
   --radius-xl: calc(var(--global-radius) * 1.5);
   --radius-2xl: calc(var(--global-radius) * 2);
   --radius-3xl: calc(var(--global-radius) * 3);
-  --radius-full: var(--global-radius);
+  --radius-full: 9999px;
+}
+
+.rounded-full {
+  border-radius: 9999px !important;
+}
+
+.is-circle {
+  border-radius: 9999px !important;
+  aspect-ratio: 1 / 1 !important;
 }
 
 .is-scrolling * {

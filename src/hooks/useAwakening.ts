@@ -19,52 +19,42 @@ export function useAwakening(isAwakened: boolean, setIsAwakened: (value: boolean
     const startX = rect.left;
     const startY = rect.top;
 
-    // Moving in feels faster and more premium
-    setAwakening({ id: Date.now(), phase: 'moving-in', startX, startY, width: rect.width, height: rect.height, isDeactivating: isAwakened });
+    // Immediately trigger shockwave from the avatar position
+    setAwakening({ 
+      id: Date.now(), 
+      phase: 'shockwave', 
+      startX, 
+      startY, 
+      width: rect.width, 
+      height: rect.height, 
+      isDeactivating: isAwakened 
+    });
 
-    setTimeout(() => {
-      if (isAwakened) {
-           // Deactivating - smooth collapse
-           setAwakening(prev => prev ? { ...prev, phase: 'shockwave' } : null);
-           setTimeout(() => {
-              setIsAwakened(false);
-              setAwakening(prev => prev ? { ...prev, phase: 'moving-out' } : null);
-           }, 2500);
-           setTimeout(() => {
-              setAwakening(null);
-           }, 4000);
-        } else {
-           // Activating - cinematic shockwave timing (5s simulation)
-           setAwakening(prev => prev ? { ...prev, phase: 'shockwave' } : null);
-           setTimeout(() => {
-             setIsAwakened(true);
-             setAwakening(prev => prev ? { ...prev, phase: 'moving-out' } : null);
-           }, 5000); // 5 seconds for the god-level liquid effect
-           setTimeout(() => {
-             setAwakening(null);
-           }, 6500);
-        }
-    }, 1200); // 1.2s to move in
+    if (isAwakened) {
+      // Smooth deactivation
+      setTimeout(() => {
+        setIsAwakened(false);
+      }, 1200);
+      setTimeout(() => {
+        setAwakening(null);
+      }, 3600);
+    } else {
+      // Cinematic activation with multi-layered cosmic shockwave
+      setTimeout(() => {
+        setIsAwakened(true);
+      }, 1000);
+      setTimeout(() => {
+        setAwakening(null);
+      }, 4200);
+    }
   }, [awakening, isAwakened, setIsAwakened]);
 
   const handleAwakeningResponse = useCallback((ready: boolean) => {
     if (!awakening) return;
-
     if (ready) {
-      setAwakening(prev => prev ? { ...prev, phase: 'shockwave' } : null);
-      setTimeout(() => {
-        setIsAwakened(true);
-        setAwakening(prev => prev ? { ...prev, phase: 'moving-out' } : null);
-      }, 5000);
-      setTimeout(() => {
-        setAwakening(null);
-      }, 6500);
-    } else {
-      setAwakening(prev => prev ? { ...prev, phase: 'moving-out' } : null);
-      setTimeout(() => {
-        setAwakening(null);
-      }, 1500);
+      setIsAwakened(true);
     }
+    setAwakening(null);
   }, [awakening, setIsAwakened]);
 
   return {

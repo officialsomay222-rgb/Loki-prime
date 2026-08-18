@@ -667,33 +667,20 @@ export default function App() {
 
       {/* 2. Awakening Overlays */}
       {awakening && (
-        <div
-          className="fixed inset-0 z-[100000] pointer-events-none flex justify-center items-center"
-        >
+        <div className="fixed inset-0 z-[100000] pointer-events-none overflow-hidden">
           {/* Shockwave rendered strictly behind the avatar container */}
-          {awakening.phase === "shockwave" && <WebGLShockwave />}
-
-          <div
-            className={`avatar-awakening flex justify-center items-center ${awakening.phase === "moving-out" ? "avatar-moving-out" : "avatar-moving-in"}`}
-            style={
-              {
-                "--start-x": `${awakening.startX}px`,
-                "--start-y": `${awakening.startY}px`,
-                width: awakening.width,
-                height: awakening.height,
-                zIndex: 999,
-              } as any
+          <WebGLShockwave
+            originX={
+              typeof window !== "undefined" && window.innerWidth > 0
+                ? (awakening.startX + (awakening.width || 40) / 2) / window.innerWidth
+                : 0.85
             }
-          >
-            <div className="absolute -inset-[2px] sm:-inset-[3px] rounded-full z-[1] opacity-100 animate-spin-aura bg-cyan-500/50 shadow-[0_0_15px_rgba(0,242,255,0.5)]"></div>
-            <img
-              src={
-                "/Picsart-26-02-28-11-29-26-443.jpg"
-              }
-              className="absolute inset-0 w-full h-full rounded-full object-cover z-[2] border-2 border-white dark:border-[#08080c]"
-              alt="Commander"
-            />
-          </div>
+            originY={
+              typeof window !== "undefined" && window.innerHeight > 0
+                ? 1.0 - (awakening.startY + (awakening.height || 40) / 2) / window.innerHeight
+                : 0.92
+            }
+          />
         </div>
       )}
 
@@ -961,7 +948,7 @@ export default function App() {
 
             <div className="flex items-center justify-end gap-2 sm:gap-4 flex-1 pointer-events-auto">
               <div
-                className={`relative w-10 h-10 aspect-square rounded-full cursor-pointer flex justify-center items-center shrink-0 hover:scale-105 transition-all ${awakening ? "opacity-0" : "opacity-100"}`}
+                className={`relative w-10 h-10 aspect-square rounded-full cursor-pointer flex justify-center items-center shrink-0 hover:scale-105 transition-all opacity-100 ${awakening ? "scale-105" : ""}`}
                 title={commanderName}
                 onClick={triggerAwakening}
                 onMouseDown={() => setIsAvatarActive(true)}
@@ -977,7 +964,7 @@ export default function App() {
                     style={{
                       background:
                         "conic-gradient(from 0deg, #ff0000, #ff7f00, #ffff00, #00ff00, #00f0ff, #bd00ff, #ff00ff, #ff0000)",
-                      boxShadow: "0 0 15px rgba(255, 255, 255, 0.4)",
+                      boxShadow: "0 0 12px rgba(0, 242, 255, 0.5)",
                     }}
                   ></div>
                 )}

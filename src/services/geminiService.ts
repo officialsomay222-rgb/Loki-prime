@@ -84,11 +84,8 @@ export const generateChatResponse = async (params: {
           }
 
           if (data.error) {
-            if (typeof data.error === 'string' && data.error.includes("Groq or HuggingFace API Key is missing")) {
-              yield { text: "Commander, your Groq or HuggingFace API key is missing. Please add 'GROQ_API_KEY' or 'HF_TOKEN' to your AI Studio Secrets to enable Pro/Happy models." };
-              return;
-            } else if (typeof data.error === 'string' && data.error.includes("Groq API Key is missing")) {
-              yield { text: "Commander, your Groq API key is missing. Please add 'GROQ_API_KEY' to your AI Studio Secrets to enable Pro/Happy models." };
+            if (typeof data.error === 'string' && (data.error.includes("API Key is missing") || data.error.includes("API key is missing"))) {
+              yield { text: "Commander, your AI API key is missing. Please add 'GROQ_API_KEY', 'GEMINI_API_KEY', or 'HF_TOKEN' to your environment or Netlify Variables." };
               return;
             }
             throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));

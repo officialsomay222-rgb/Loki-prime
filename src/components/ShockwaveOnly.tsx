@@ -1,91 +1,99 @@
-import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 
 const vertexShaderSource = `
-  attribute vec2 position;
+  attribute vec2 a_position;
+  varying vec2 v_uv;
   void main() {
-    gl_Position = vec4(position, 0.0, 1.0);
+    v_uv = a_position * 0.5 + 0.5;
+    gl_Position = vec4(a_position, 0.0, 1.0);
   }
 `;
 
-// Standard WebGL fragment shader for the shockwave effect
 const fragmentShaderSource = `
   precision highp float;
+  varying vec2 v_uv;
   uniform vec2 u_resolution;
   uniform float u_time;
-  uniform vec3 u_shockwaves[10]; // x, y, startTime
+  uniform vec3 u_shockwaves[10]; // x: normX, y: normY, z: startTime
   uniform float u_waveSpeed;
   uniform float u_waveThickness;
   uniform float u_waveGlow;
   uniform float u_particleSpeed;
 
-  float sdInfinity(vec2 p, float a) {
-    float x2 = p.x * p.x;
-    float y2 = p.y * p.y;
-    float r2 = x2 + y2;
-    float f = r2 * r2 - a * a * (x2 - y2);
-    vec2 grad = vec2(4.0 * p.x * r2 - 2.0 * a * a * p.x,
-                     4.0 * p.y * r2 + 2.0 * a * a * p.y);
-    return abs(f) / (length(grad) + 0.0001);
-  }
-
   void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    vec2 pos = uv;
     float aspect = u_resolution.x / u_resolution.y;
-    pos.x *= aspect;
+    vec2 p = uv;
+    p.x *= aspect;
 
-    vec3 color = vec3(0.0); // Transparent background
-    float alpha = 0.0;
+    vec3 accumColor = vec3(0.0);
+    float accumAlpha = 0.0;
 
-    // Google official brand colors
-    vec3 cBlue = vec3(0.259, 0.522, 0.957);
-    vec3 cRed = vec3(0.918, 0.263, 0.208);
-    vec3 cYellow = vec3(0.984, 0.737, 0.020);
-    vec3 cGreen = vec3(0.204, 0.659, 0.325);
+    // 8 Saturated, High-Contrast Cosmic Spectral Wavelengths
+    vec3 cCyan     = vec3(0.00, 0.95, 1.00); // Electric Cyan
+    vec3 cViolet   = vec3(0.55, 0.12, 1.00); // Neon Violet
+    vec3 cPink     = vec3(1.00, 0.02, 0.58); // Synthwave Pink
+    vec3 cGold     = vec3(1.00, 0.74, 0.00); // Solar Flare Gold
+    vec3 cEmerald  = vec3(0.00, 1.00, 0.58); // Matrix Emerald
+    vec3 cAzure    = vec3(0.00, 0.55, 1.00); // High-Voltage Azure
+    vec3 cCoral    = vec3(1.00, 0.22, 0.28); // Supernova Coral
+    vec3 cMagenta  = vec3(0.85, 0.05, 0.95); // Royal Orchid
 
-    for (int i = 0; i < 10; i++) { // Max 10 simultaneous shockwaves
+    for (int i = 0; i < 10; i++) {
       float startTime = u_shockwaves[i].z;
       if (startTime <= 0.0) continue;
 
       float age = u_time - startTime;
       if (age > 0.0 && age < 4.0) {
         vec2 center = u_shockwaves[i].xy;
-        center.x *= aspect; // apply aspect ratio to center
+        center.x *= aspect;
 
-        float dist = distance(pos, center);
-        float currentRadius = age * 0.7 * u_waveSpeed; // Speed of expansion
-        float thickness = (0.02 + (age * 0.025)) * u_waveThickness; // Gets thicker as it expands
+        float dist = distance(p, center);
+        float angle = atan(p.y - center.y, p.x - center.x);
 
-        // Loop over the 4 Google colors to make a rainbow wave
-        for(int j = 0; j < 4; j++) {
-          float offset = float(j) * (0.06 + age * 0.015);
-          float r = currentRadius - offset;
+        float shimmer = sin(angle * 6.0 + age * 4.0) * 0.003;
+        float effectiveDist = dist + shimmer;
 
-          if (r > 0.0) {
-            float ring = smoothstep(r - thickness, r, dist) - smoothstep(r, r + thickness, dist);
+        float currentRadius = age * 0.85 * u_waveSpeed;
+        float baseThick = (0.014 + age * 0.016) * u_waveThickness;
+
+        float originDamp = smoothstep(0.015, 0.08, currentRadius);
+        float lifeFade = smoothstep(4.0, 0.0, age) * smoothstep(0.0, 0.06, age);
+
+        for (int j = 0; j < 8; j++) {
+          float ringOffset = float(j) * (0.034 + age * 0.008);
+          float ringR = currentRadius - ringOffset;
+
+          if (ringR > 0.005) {
+            float d = abs(effectiveDist - ringR);
+            float thick = baseThick * (1.0 + float(j) * 0.08);
+
+            float ringCore = exp(-pow(d / thick, 2.0));
+            float auraGlow = exp(-d * 20.0) * 0.50 * u_waveGlow;
+
+            float intensity = (ringCore * 0.85 + auraGlow) * originDamp * lifeFade;
 
             vec3 ringColor;
-            if (j == 0) ringColor = cBlue;
-            else if (j == 1) ringColor = cRed;
-            else if (j == 2) ringColor = cYellow;
-            else ringColor = cGreen;
+            if (j == 0) ringColor = cCyan;
+            else if (j == 1) ringColor = cViolet;
+            else if (j == 2) ringColor = cPink;
+            else if (j == 3) ringColor = cGold;
+            else if (j == 4) ringColor = cEmerald;
+            else if (j == 5) ringColor = cAzure;
+            else if (j == 6) ringColor = cCoral;
+            else ringColor = cMagenta;
 
-            // Fade out smoothly at end of life and fade in quickly at start
-            float fade = smoothstep(4.0, 0.0, age) * smoothstep(0.0, 0.1, age);
-
-            // Add a soft glow effect alongside the hard ring
-            float glow = exp(-abs(dist - r) * 8.0) * 0.8 * u_waveGlow;
-
-            color += ringColor * (ring + glow) * fade;
-            alpha += (ring + glow) * fade;
+            accumColor += ringColor * intensity;
+            accumAlpha += intensity * 0.60;
           }
         }
       }
     }
 
-    // Render central animated infinity loop removed for ShockwaveOnly component
+    vec3 toneMappedColor = accumColor / (1.0 + accumColor * 0.45);
+    float finalAlpha = clamp(accumAlpha, 0.0, 0.80);
 
-    gl_FragColor = vec4(clamp(color, 0.0, 1.0), clamp(alpha, 0.0, 1.0));
+    gl_FragColor = vec4(toneMappedColor, finalAlpha);
   }
 `;
 
@@ -127,7 +135,13 @@ export interface ShockwaveConfig {
   particleSpeed: number;
 }
 
-export const ShockwaveOnly = forwardRef<WebGLCanvasRef, { config?: ShockwaveConfig }>(({ config }, ref) => {
+export interface ShockwaveOnlyProps {
+  config?: ShockwaveConfig;
+  originX?: number;
+  originY?: number;
+}
+
+export const ShockwaveOnly = forwardRef<WebGLCanvasRef, ShockwaveOnlyProps>(({ config, originX, originY }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const configRef = useRef(config || {
@@ -143,16 +157,20 @@ export const ShockwaveOnly = forwardRef<WebGLCanvasRef, { config?: ShockwaveConf
     }
   }, [config]);
 
-  // Store up to 10 shockwaves: x, y, startTime
-  const shockwavesRef = useRef<Float32Array>(new Float32Array(30));
-  const currentIdxRef = useRef(0);
+  const shockwavesRef = useRef<Array<{ x: number, y: number, startTime: number }>>([]);
+  const startTimeRef = useRef<number>(performance.now() / 1000);
 
   const triggerShockwave = (normalizedX: number, normalizedY: number) => {
-    const idx = (currentIdxRef.current % 10) * 3;
-    shockwavesRef.current[idx] = normalizedX;
-    shockwavesRef.current[idx + 1] = normalizedY;
-    shockwavesRef.current[idx + 2] = performance.now() / 1000.0;
-    currentIdxRef.current += 1;
+    const currentTime = performance.now() / 1000 - startTimeRef.current;
+    shockwavesRef.current.push({
+      x: normalizedX,
+      y: normalizedY,
+      startTime: currentTime
+    });
+
+    if (shockwavesRef.current.length > 10) {
+      shockwavesRef.current.shift();
+    }
   };
 
   useImperativeHandle(ref, () => ({
@@ -162,7 +180,8 @@ export const ShockwaveOnly = forwardRef<WebGLCanvasRef, { config?: ShockwaveConf
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const gl = canvas.getContext('webgl');
+
+    const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false });
     if (!gl) {
       console.error('WebGL not supported');
       return;
@@ -170,22 +189,24 @@ export const ShockwaveOnly = forwardRef<WebGLCanvasRef, { config?: ShockwaveConf
 
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+
     if (!vertexShader || !fragmentShader) return;
 
     const program = createProgram(gl, vertexShader, fragmentShader);
     if (!program) return;
 
-    const positionAttributeLocation = gl.getAttribLocation(program, 'position');
+    const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
     const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution');
     const timeUniformLocation = gl.getUniformLocation(program, 'u_time');
-    const shockwavesUniformLocation = gl.getUniformLocation(program, 'u_shockwaves[0]') || gl.getUniformLocation(program, 'u_shockwaves');
-    const waveSpeedLocation = gl.getUniformLocation(program, 'u_waveSpeed');
-    const waveThicknessLocation = gl.getUniformLocation(program, 'u_waveThickness');
-    const waveGlowLocation = gl.getUniformLocation(program, 'u_waveGlow');
-    const particleSpeedLocation = gl.getUniformLocation(program, 'u_particleSpeed');
+    const shockwavesUniformLocation = gl.getUniformLocation(program, 'u_shockwaves');
+    const waveSpeedUniformLocation = gl.getUniformLocation(program, 'u_waveSpeed');
+    const waveThicknessUniformLocation = gl.getUniformLocation(program, 'u_waveThickness');
+    const waveGlowUniformLocation = gl.getUniformLocation(program, 'u_waveGlow');
+    const particleSpeedUniformLocation = gl.getUniformLocation(program, 'u_particleSpeed');
 
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
     const positions = [
       -1, -1,
        1, -1,
@@ -196,8 +217,9 @@ export const ShockwaveOnly = forwardRef<WebGLCanvasRef, { config?: ShockwaveConf
     ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
-    // Initial resize
-    const resizeCanvas = () => {
+    let animationFrameId: number;
+
+    const render = () => {
       const displayWidth = window.innerWidth;
       const displayHeight = window.innerHeight;
 
@@ -206,76 +228,82 @@ export const ShockwaveOnly = forwardRef<WebGLCanvasRef, { config?: ShockwaveConf
         canvas.height = displayHeight;
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
       }
-    };
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
 
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-
-    let animationFrameId: number;
-
-    const render = (time: number) => {
-      // time is in ms, convert to seconds
-      const timeSecs = time * 0.001;
-
+      gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
 
       gl.useProgram(program);
+
       gl.enableVertexAttribArray(positionAttributeLocation);
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
-      // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-      const size = 2;          // 2 components per iteration
-      const type = gl.FLOAT;   // the data is 32bit floats
-      const normalize = false; // don't normalize the data
-      const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-      const offset = 0;        // start at the beginning of the buffer
-      gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
+      gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+      const currentTime = performance.now() / 1000 - startTimeRef.current;
+      gl.uniform1f(timeUniformLocation, currentTime);
 
-      // Set uniforms
-      gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
-      gl.uniform1f(timeUniformLocation, timeSecs);
-      gl.uniform3fv(shockwavesUniformLocation, shockwavesRef.current);
-      gl.uniform1f(waveSpeedLocation, configRef.current.waveSpeed);
-      gl.uniform1f(waveThicknessLocation, configRef.current.waveThickness);
-      gl.uniform1f(waveGlowLocation, configRef.current.waveGlow);
-      gl.uniform1f(particleSpeedLocation, configRef.current.particleSpeed);
+      gl.uniform1f(waveSpeedUniformLocation, configRef.current.waveSpeed);
+      gl.uniform1f(waveThicknessUniformLocation, configRef.current.waveThickness);
+      gl.uniform1f(waveGlowUniformLocation, configRef.current.waveGlow);
+      gl.uniform1f(particleSpeedUniformLocation, configRef.current.particleSpeed);
+
+      const shockwaveData = new Float32Array(30);
+      for (let i = 0; i < 10; i++) {
+        if (i < shockwavesRef.current.length) {
+          shockwaveData[i * 3 + 0] = shockwavesRef.current[i].x;
+          shockwaveData[i * 3 + 1] = shockwavesRef.current[i].y;
+          shockwaveData[i * 3 + 2] = shockwavesRef.current[i].startTime;
+        } else {
+          shockwaveData[i * 3 + 0] = 0;
+          shockwaveData[i * 3 + 1] = 0;
+          shockwaveData[i * 3 + 2] = -1.0;
+        }
+      }
+      gl.uniform3fv(shockwavesUniformLocation, shockwaveData);
+
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
       animationFrameId = requestAnimationFrame(render);
     };
 
-    animationFrameId = requestAnimationFrame(render);
+    render();
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
       cancelAnimationFrame(animationFrameId);
       gl.deleteProgram(program);
       gl.deleteShader(vertexShader);
       gl.deleteShader(fragmentShader);
+      gl.deleteBuffer(positionBuffer);
     };
   }, []);
 
   useEffect(() => {
-    // Trigger a single shockwave immediately when the component mounts
-    triggerShockwave(0.5, 0.5);
-  }, []);
+    const ox = typeof originX === 'number' ? originX : 0.85;
+    const oy = typeof originY === 'number' ? originY : 0.92;
+
+    triggerShockwave(ox, oy);
+
+    const t1 = setTimeout(() => triggerShockwave(ox, oy), 280);
+    const t2 = setTimeout(() => triggerShockwave(ox, oy), 620);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [originX, originY]);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[998] overflow-hidden">
       <canvas
         ref={canvasRef}
-        className="absolute top-0 left-0 w-full h-full"
-        style={{
-          transform: 'translateZ(0)',
-          willChange: 'transform, opacity'
-        }}
+        className="w-full h-full block"
+        style={{ pointerEvents: 'none' }}
       />
     </div>
   );
 });
-
-ShockwaveOnly.displayName = 'WebGLShockwave';
 
 export default ShockwaveOnly;
