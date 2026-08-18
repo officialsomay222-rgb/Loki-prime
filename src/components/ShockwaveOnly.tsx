@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const vertexShaderSource = `
   attribute vec2 a_position;
@@ -14,32 +14,32 @@ const fragmentShaderSource = `
   varying vec2 v_uv;
   uniform vec2 u_resolution;
   uniform float u_time;
-  uniform vec3 u_shockwaves[10]; // x: normX, y: normY, z: startTime
+  uniform vec3 u_shockwaves[10];
   uniform float u_waveSpeed;
   uniform float u_waveThickness;
   uniform float u_waveGlow;
-  uniform float u_particleSpeed;
 
   vec3 getAuthenticRainbow(float t) {
     t = clamp(t, 0.0, 1.0);
+    // Red -> Orange -> Golden Yellow -> Lush Emerald Green -> Pure Cyan -> Deep Royal Blue/Indigo -> Rich Violet
     if (t < 0.166) {
       float f = t / 0.166;
-      return mix(vec3(1.00, 0.05, 0.15), vec3(1.00, 0.45, 0.00), f);
+      return mix(vec3(1.00, 0.02, 0.10), vec3(1.00, 0.44, 0.00), f);
     } else if (t < 0.333) {
       float f = (t - 0.166) / 0.167;
-      return mix(vec3(1.00, 0.45, 0.00), vec3(1.00, 0.90, 0.00), f);
+      return mix(vec3(1.00, 0.44, 0.00), vec3(1.00, 0.92, 0.00), f);
     } else if (t < 0.500) {
       float f = (t - 0.333) / 0.167;
-      return mix(vec3(1.00, 0.90, 0.00), vec3(0.00, 0.95, 0.35), f);
+      return mix(vec3(1.00, 0.92, 0.00), vec3(0.00, 0.98, 0.35), f);
     } else if (t < 0.666) {
       float f = (t - 0.500) / 0.166;
-      return mix(vec3(0.00, 0.95, 0.35), vec3(0.00, 0.80, 1.00), f);
+      return mix(vec3(0.00, 0.98, 0.35), vec3(0.00, 0.85, 1.00), f);
     } else if (t < 0.833) {
       float f = (t - 0.666) / 0.167;
-      return mix(vec3(0.00, 0.80, 1.00), vec3(0.25, 0.20, 1.00), f);
+      return mix(vec3(0.00, 0.85, 1.00), vec3(0.20, 0.18, 1.00), f);
     } else {
       float f = (t - 0.833) / 0.167;
-      return mix(vec3(0.25, 0.20, 1.00), vec3(0.85, 0.05, 0.90), f);
+      return mix(vec3(0.20, 0.18, 1.00), vec3(0.88, 0.04, 0.92), f);
     }
   }
 
@@ -64,24 +64,26 @@ const fragmentShaderSource = `
         float dist = distance(p, center);
         float angle = atan(p.y - center.y, p.x - center.x);
 
-        float shimmer = sin(angle * 6.0 + age * 3.5) * 0.0025 + cos(angle * 3.0 - age * 2.5) * 0.0015;
+        float shimmer = sin(angle * 7.0 + age * 3.0) * 0.0022 + cos(angle * 3.5 - age * 2.0) * 0.0012;
         float effectiveDist = dist + shimmer;
 
-        float currentRadius = age * 0.46 * u_waveSpeed;
-        float baseThick = (0.018 + age * 0.016) * u_waveThickness;
+        float currentRadius = age * 0.44 * u_waveSpeed;
+        float baseThick = (0.020 + age * 0.016) * u_waveThickness;
 
-        float originDamp = smoothstep(0.008, 0.06, currentRadius);
+        float originDamp = smoothstep(0.008, 0.065, currentRadius);
         float lifeFade = smoothstep(3.2, 0.0, age) * smoothstep(0.0, 0.08, age);
 
-        float sunRays = pow(max(0.0, sin(angle * 10.0 + age * 1.5) * cos(angle * 5.0 - age * 2.0)), 6.0);
-        float rayIntensity = sunRays * exp(-dist * 2.2) * 0.28 * originDamp * lifeFade;
+        // Radiant Sun God-Rays
+        float sunRays = pow(max(0.0, sin(angle * 10.0 + age * 1.6) * cos(angle * 5.0 - age * 2.2)), 6.0);
+        float rayIntensity = sunRays * exp(-dist * 2.2) * 0.30 * originDamp * lifeFade;
         vec3 rayColor = vec3(1.00, 0.88, 0.45);
         finalColor += rayColor * rayIntensity;
-        finalAlpha = max(finalAlpha, rayIntensity * 0.40);
+        finalAlpha = max(finalAlpha, rayIntensity * 0.42);
 
+        // 7 Vivid Optical Rainbow Spectrum Rings (Red -> Orange -> Yellow -> Green -> Cyan -> Indigo -> Violet)
         for (int j = 0; j < 7; j++) {
           float spectralPos = float(j) / 6.0;
-          float ringOffset = float(j) * (0.024 + age * 0.006);
+          float ringOffset = float(j) * (0.026 + age * 0.006);
           float ringR = currentRadius - ringOffset;
 
           if (ringR > 0.005) {
@@ -89,23 +91,23 @@ const fragmentShaderSource = `
             float thick = baseThick * (1.0 + float(j) * 0.06);
 
             float ringCore = exp(-pow(d / thick, 2.0));
-            float sunGlint = exp(-pow(d / (thick * 0.25), 2.0)) * 0.75;
-            float corona = exp(-d * 34.0) * 0.40 * u_waveGlow;
+            float sunGlint = exp(-pow(d / (thick * 0.24), 2.0)) * 0.80;
+            float corona = exp(-d * 36.0) * 0.42 * u_waveGlow;
 
             float intensity = (ringCore + corona) * originDamp * lifeFade;
             vec3 spectralColor = getAuthenticRainbow(spectralPos);
-            vec3 ringColor = mix(spectralColor, vec3(1.00, 0.98, 0.88), sunGlint * 0.48);
+            vec3 ringColor = mix(spectralColor, vec3(1.00, 0.98, 0.88), sunGlint * 0.50);
 
-            finalColor += ringColor * intensity * 1.5;
-            float layerAlpha = (ringCore * 0.88 + sunGlint * 0.45 + corona * 0.30) * originDamp * lifeFade;
+            finalColor += ringColor * intensity * 1.55;
+            float layerAlpha = (ringCore * 0.88 + sunGlint * 0.48 + corona * 0.32) * originDamp * lifeFade;
             finalAlpha = max(finalAlpha, layerAlpha);
           }
         }
       }
     }
 
-    vec3 toneMapped = (finalColor * (1.0 + finalColor * 0.30)) / (1.0 + finalColor * 0.60);
-    finalAlpha = clamp(finalAlpha, 0.0, 0.90);
+    vec3 toneMapped = (finalColor * (1.0 + finalColor * 0.32)) / (1.0 + finalColor * 0.58);
+    finalAlpha = clamp(finalAlpha, 0.0, 0.92);
 
     gl_FragColor = vec4(clamp(toneMapped, 0.0, 1.0), finalAlpha);
   }
@@ -138,39 +140,32 @@ function createProgram(gl: WebGLRenderingContext, vertexShader: WebGLShader, fra
   return program;
 }
 
-export interface WebGLCanvasRef {
-  triggerShockwave: (normalizedX: number, normalizedY: number) => void;
-}
-
-export interface ShockwaveConfig {
-  waveSpeed: number;
-  waveThickness: number;
-  waveGlow: number;
-  particleSpeed: number;
-}
-
 export interface ShockwaveOnlyProps {
-  config?: ShockwaveConfig;
   originX?: number;
   originY?: number;
+  waveSpeed?: number;
+  waveThickness?: number;
+  waveGlow?: number;
+  config?: {
+    waveSpeed?: number;
+    waveThickness?: number;
+    waveGlow?: number;
+    particleSpeed?: number;
+  };
 }
 
-export const ShockwaveOnly = forwardRef<WebGLCanvasRef, ShockwaveOnlyProps>(({ config, originX, originY }, ref) => {
+export const ShockwaveOnly: React.FC<ShockwaveOnlyProps> = ({
+  originX = 0.85,
+  originY = 0.92,
+  waveSpeed: waveSpeedProp = 1.0,
+  waveThickness: waveThicknessProp = 1.0,
+  waveGlow: waveGlowProp = 1.0,
+  config
+}) => {
+  const waveSpeed = config?.waveSpeed ?? waveSpeedProp;
+  const waveThickness = config?.waveThickness ?? waveThicknessProp;
+  const waveGlow = config?.waveGlow ?? waveGlowProp;
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  const configRef = useRef(config || {
-    waveSpeed: 1.0,
-    waveThickness: 1.0,
-    waveGlow: 1.0,
-    particleSpeed: 1.0
-  });
-
-  useEffect(() => {
-    if (config) {
-      configRef.current = config;
-    }
-  }, [config]);
-
   const shockwavesRef = useRef<Array<{ x: number, y: number, startTime: number }>>([]);
   const startTimeRef = useRef<number>(performance.now() / 1000);
 
@@ -187,23 +182,15 @@ export const ShockwaveOnly = forwardRef<WebGLCanvasRef, ShockwaveOnlyProps>(({ c
     }
   };
 
-  useImperativeHandle(ref, () => ({
-    triggerShockwave
-  }));
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false });
-    if (!gl) {
-      console.error('WebGL not supported');
-      return;
-    }
+    if (!gl) return;
 
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-
     if (!vertexShader || !fragmentShader) return;
 
     const program = createProgram(gl, vertexShader, fragmentShader);
@@ -216,7 +203,6 @@ export const ShockwaveOnly = forwardRef<WebGLCanvasRef, ShockwaveOnlyProps>(({ c
     const waveSpeedUniformLocation = gl.getUniformLocation(program, 'u_waveSpeed');
     const waveThicknessUniformLocation = gl.getUniformLocation(program, 'u_waveThickness');
     const waveGlowUniformLocation = gl.getUniformLocation(program, 'u_waveGlow');
-    const particleSpeedUniformLocation = gl.getUniformLocation(program, 'u_particleSpeed');
 
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -256,10 +242,9 @@ export const ShockwaveOnly = forwardRef<WebGLCanvasRef, ShockwaveOnlyProps>(({ c
       const currentTime = performance.now() / 1000 - startTimeRef.current;
       gl.uniform1f(timeUniformLocation, currentTime);
 
-      gl.uniform1f(waveSpeedUniformLocation, configRef.current.waveSpeed);
-      gl.uniform1f(waveThicknessUniformLocation, configRef.current.waveThickness);
-      gl.uniform1f(waveGlowUniformLocation, configRef.current.waveGlow);
-      gl.uniform1f(particleSpeedUniformLocation, configRef.current.particleSpeed);
+      gl.uniform1f(waveSpeedUniformLocation, waveSpeed);
+      gl.uniform1f(waveThicknessUniformLocation, waveThickness);
+      gl.uniform1f(waveGlowUniformLocation, waveGlow);
 
       const shockwaveData = new Float32Array(30);
       for (let i = 0; i < 10; i++) {
@@ -292,16 +277,11 @@ export const ShockwaveOnly = forwardRef<WebGLCanvasRef, ShockwaveOnlyProps>(({ c
       gl.deleteShader(fragmentShader);
       gl.deleteBuffer(positionBuffer);
     };
-  }, []);
+  }, [waveSpeed, waveThickness, waveGlow]);
 
   useEffect(() => {
-    const ox = typeof originX === 'number' ? originX : 0.85;
-    const oy = typeof originY === 'number' ? originY : 0.92;
-
-    triggerShockwave(ox, oy);
-
-    const t1 = setTimeout(() => triggerShockwave(ox, oy), 450);
-
+    triggerShockwave(originX, originY);
+    const t1 = setTimeout(() => triggerShockwave(originX, originY), 450);
     return () => {
       clearTimeout(t1);
     };
@@ -316,6 +296,6 @@ export const ShockwaveOnly = forwardRef<WebGLCanvasRef, ShockwaveOnlyProps>(({ c
       />
     </div>
   );
-});
+};
 
 export default ShockwaveOnly;

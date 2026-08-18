@@ -724,6 +724,9 @@ export default function App() {
         >
           <div
             className="p-3.5 flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 shrink-0"
+            style={{
+              paddingTop: "max(0.875rem, calc(env(safe-area-inset-top, 0px) + 0.75rem))",
+            }}
           >
             <div
               className={`flex items-center gap-2 font-montserrat font-bold ${isAwakened && theme === "light" ? "text-slate-900" : "text-slate-900 dark:text-white"}`}
@@ -870,14 +873,18 @@ export default function App() {
         >
           {/* Header */}
           <header
-            className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-3 sm:px-6 bg-transparent z-30 shrink-0 pointer-events-none select-none"
+            className="absolute top-0 left-0 right-0 z-30 shrink-0 pointer-events-none select-none flex items-center justify-between px-3 sm:px-6 transition-all"
+            style={{
+              paddingTop: "max(0.65rem, env(safe-area-inset-top, 0px))",
+              height: "calc(4.25rem + env(safe-area-inset-top, 0px))",
+            }}
           >
             <div className="flex items-center gap-2 sm:gap-4 flex-1 pointer-events-auto">
               {!isSidebarOpen && (
                 <button
                   onClick={() => setIsSidebarOpen(true)}
                   aria-label="Open Sidebar"
-                  className="w-10 h-10 aspect-square rounded-full flex items-center justify-center shrink-0 bg-white/80 dark:bg-[#0a0a10]/80 hover:bg-white dark:hover:bg-white/15 border border-slate-200/90 dark:border-white/15 text-slate-700 dark:text-[#f0f0f5] shadow-sm backdrop-blur-md transition-all active:scale-95"
+                  className="w-10 h-10 aspect-square rounded-full flex items-center justify-center shrink-0 bg-white/90 dark:bg-[#0a0a10]/90 hover:bg-white dark:hover:bg-white/20 border border-slate-200/90 dark:border-white/20 text-slate-800 dark:text-[#f0f0f5] shadow-md backdrop-blur-md transition-all active:scale-95 cursor-pointer z-30"
                 >
                   <PanelLeftOpen className="w-5 h-5 shrink-0" />
                 </button>
@@ -971,14 +978,14 @@ export default function App() {
             }}
           >
             {/* Inner spacer for header */}
-            <div className="h-16 w-full shrink-0" />
+            <div className="w-full shrink-0" style={{ height: "calc(4.25rem + env(safe-area-inset-top, 0px))" }} />
 
             <div
               className={`w-full ${appWidthClass} mx-auto px-3 sm:px-6 h-full flex flex-col ${!currentSession || currentSession.messages.length === 0 ? "justify-center items-center" : "pt-2 space-y-6 sm:space-y-8"}`}
               style={
                 !currentSession || currentSession.messages.length === 0
                   ? {
-                      height: "calc(100% - 4rem)",
+                      height: "calc(100% - 4.5rem - env(safe-area-inset-top, 0px))",
                     }
                   : {}
               }
@@ -1038,7 +1045,7 @@ export default function App() {
               ) : (
                 <>
                   {renderedMessages}
-                  <div ref={messagesEndRef} className="h-52 sm:h-64 shrink-0 pointer-events-none" />
+                  <div ref={messagesEndRef} className="h-64 sm:h-80 shrink-0 pointer-events-none" />
                 </>
               )}
             </div>
@@ -1074,6 +1081,7 @@ export default function App() {
           <div
             className={`absolute bottom-0 left-0 right-0 z-20 w-full ${appWidthClass} mx-auto input-keyboard-safe-area pointer-events-none`}
             style={{
+              paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))",
               paddingTop: "8px",
             }}
           >

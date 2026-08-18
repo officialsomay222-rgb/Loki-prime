@@ -20,28 +20,28 @@ const fragmentShaderSource = `
   uniform float u_waveGlow;
   uniform float u_particleSpeed;
 
-  // Authentic Natural Rainbow Spectral Function (ROYGBIV with deep vivid saturation)
+  // Authentic Natural Rainbow Spectral Curve (Deep, rich, saturated ROYGBIV spectrum)
   vec3 getAuthenticRainbow(float t) {
     t = clamp(t, 0.0, 1.0);
-    // Smooth 7-segment true rainbow chromatic curve (Red -> Orange -> Yellow -> Green -> Cyan -> Blue -> Violet)
+    // Red -> Orange -> Golden Yellow -> Lush Emerald Green -> Pure Cyan -> Deep Royal Blue/Indigo -> Rich Violet
     if (t < 0.166) {
       float f = t / 0.166;
-      return mix(vec3(1.00, 0.05, 0.15), vec3(1.00, 0.45, 0.00), f); // Deep Crimson Red -> Radiant Vivid Orange
+      return mix(vec3(1.00, 0.02, 0.10), vec3(1.00, 0.44, 0.00), f);
     } else if (t < 0.333) {
       float f = (t - 0.166) / 0.167;
-      return mix(vec3(1.00, 0.45, 0.00), vec3(1.00, 0.90, 0.00), f); // Radiant Orange -> Sunburst Golden Yellow
+      return mix(vec3(1.00, 0.44, 0.00), vec3(1.00, 0.92, 0.00), f);
     } else if (t < 0.500) {
       float f = (t - 0.333) / 0.167;
-      return mix(vec3(1.00, 0.90, 0.00), vec3(0.00, 0.95, 0.35), f); // Golden Yellow -> Lush Emerald Green
+      return mix(vec3(1.00, 0.92, 0.00), vec3(0.00, 0.98, 0.35), f);
     } else if (t < 0.666) {
       float f = (t - 0.500) / 0.166;
-      return mix(vec3(0.00, 0.95, 0.35), vec3(0.00, 0.80, 1.00), f); // Emerald Green -> Vibrant Cerulean Cyan
+      return mix(vec3(0.00, 0.98, 0.35), vec3(0.00, 0.85, 1.00), f);
     } else if (t < 0.833) {
       float f = (t - 0.666) / 0.167;
-      return mix(vec3(0.00, 0.80, 1.00), vec3(0.25, 0.20, 1.00), f); // Cerulean Cyan -> Deep Royal Indigo
+      return mix(vec3(0.00, 0.85, 1.00), vec3(0.20, 0.18, 1.00), f);
     } else {
       float f = (t - 0.833) / 0.167;
-      return mix(vec3(0.25, 0.20, 1.00), vec3(0.85, 0.05, 0.90), f); // Royal Indigo -> Rich Violet/Magenta
+      return mix(vec3(0.20, 0.18, 1.00), vec3(0.88, 0.04, 0.92), f);
     }
   }
 
@@ -59,7 +59,7 @@ const fragmentShaderSource = `
       if (startTime <= 0.0) continue;
 
       float age = u_time - startTime;
-      // Majestic 3.0 second slow expansion period
+      // Majestic slow 2.8 - 3.2 second propagation period
       if (age > 0.0 && age < 3.2) {
         vec2 center = u_shockwaves[i].xy;
         center.x *= aspect;
@@ -67,30 +67,30 @@ const fragmentShaderSource = `
         float dist = distance(p, center);
         float angle = atan(p.y - center.y, p.x - center.x);
 
-        // Subtle optical atmospheric refraction
-        float shimmer = sin(angle * 6.0 + age * 3.5) * 0.0025 + cos(angle * 3.0 - age * 2.5) * 0.0015;
+        // Optical atmospheric prismatic shimmer
+        float shimmer = sin(angle * 7.0 + age * 3.0) * 0.0022 + cos(angle * 3.5 - age * 2.0) * 0.0012;
         float effectiveDist = dist + shimmer;
 
-        // Slow, elegant, majestic wave propagation (~0.46 speed reaches full screen comfortably across 3s)
-        float currentRadius = age * 0.46 * u_waveSpeed;
-        float baseThick = (0.018 + age * 0.016) * u_waveThickness;
+        // Slow, elegant 2 to 3 second wave propagation
+        float currentRadius = age * 0.44 * u_waveSpeed;
+        float baseThick = (0.020 + age * 0.016) * u_waveThickness;
 
-        // Smooth origin entry: zero square/milky artifacts at start
-        float originDamp = smoothstep(0.008, 0.06, currentRadius);
-        // Life fade with smooth ease-in and gradual atmospheric dissipation
+        // Smooth spawn dampening (eliminates any origin glitch / white square)
+        float originDamp = smoothstep(0.008, 0.065, currentRadius);
+        // Clean life fade with smooth attack and gradual atmospheric dissipation
         float lifeFade = smoothstep(3.2, 0.0, age) * smoothstep(0.0, 0.08, age);
 
-        // Radiant Sun God-Rays (gently shimmers like sunlight through rain droplets)
-        float sunRays = pow(max(0.0, sin(angle * 10.0 + age * 1.5) * cos(angle * 5.0 - age * 2.0)), 6.0);
-        float rayIntensity = sunRays * exp(-dist * 2.2) * 0.28 * originDamp * lifeFade;
+        // Radiant Solar God-Rays (gently shimmers like sunlight through rain droplets)
+        float sunRays = pow(max(0.0, sin(angle * 10.0 + age * 1.6) * cos(angle * 5.0 - age * 2.2)), 6.0);
+        float rayIntensity = sunRays * exp(-dist * 2.2) * 0.30 * originDamp * lifeFade;
         vec3 rayColor = vec3(1.00, 0.88, 0.45);
         finalColor += rayColor * rayIntensity;
-        finalAlpha = max(finalAlpha, rayIntensity * 0.40);
+        finalAlpha = max(finalAlpha, rayIntensity * 0.42);
 
-        // 7 Pure Optical Rainbow Layers (Red -> Orange -> Yellow -> Green -> Cyan -> Indigo -> Violet)
+        // 7 Vivid Optical Rainbow Spectrum Rings (Red -> Orange -> Yellow -> Green -> Cyan -> Indigo -> Violet)
         for (int j = 0; j < 7; j++) {
-          float spectralPos = float(j) / 6.0; // 0.0 (Red) to 1.0 (Violet)
-          float ringOffset = float(j) * (0.024 + age * 0.006);
+          float spectralPos = float(j) / 6.0; // Exact ROYGBIV mapping
+          float ringOffset = float(j) * (0.026 + age * 0.006);
           float ringR = currentRadius - ringOffset;
 
           if (ringR > 0.005) {
@@ -100,9 +100,9 @@ const fragmentShaderSource = `
             // Razor-sharp Gaussian wavefront crest
             float ringCore = exp(-pow(d / thick, 2.0));
             // High-luminance sunbeam highlight on the leading crest
-            float sunGlint = exp(-pow(d / (thick * 0.25), 2.0)) * 0.75;
+            float sunGlint = exp(-pow(d / (thick * 0.24), 2.0)) * 0.80;
             // Tightly bounded chromatic corona (prevents white haze in center)
-            float corona = exp(-d * 34.0) * 0.40 * u_waveGlow;
+            float corona = exp(-d * 36.0) * 0.42 * u_waveGlow;
 
             float intensity = (ringCore + corona) * originDamp * lifeFade;
 
@@ -110,11 +110,11 @@ const fragmentShaderSource = `
             vec3 spectralColor = getAuthenticRainbow(spectralPos);
 
             // Shimmering golden sun specular highlight on the crest
-            vec3 ringColor = mix(spectralColor, vec3(1.00, 0.98, 0.88), sunGlint * 0.48);
+            vec3 ringColor = mix(spectralColor, vec3(1.00, 0.98, 0.88), sunGlint * 0.50);
 
-            // Rich chromatic accumulation
-            finalColor += ringColor * intensity * 1.5;
-            float layerAlpha = (ringCore * 0.88 + sunGlint * 0.45 + corona * 0.30) * originDamp * lifeFade;
+            // Deep chromatic accumulation
+            finalColor += ringColor * intensity * 1.55;
+            float layerAlpha = (ringCore * 0.88 + sunGlint * 0.48 + corona * 0.32) * originDamp * lifeFade;
             finalAlpha = max(finalAlpha, layerAlpha);
           }
         }
@@ -122,8 +122,8 @@ const fragmentShaderSource = `
     }
 
     // High Dynamic Range Tone-Mapping: preserves deep saturated rainbow color depth while providing solar brightness
-    vec3 toneMapped = (finalColor * (1.0 + finalColor * 0.30)) / (1.0 + finalColor * 0.60);
-    finalAlpha = clamp(finalAlpha, 0.0, 0.90);
+    vec3 toneMapped = (finalColor * (1.0 + finalColor * 0.32)) / (1.0 + finalColor * 0.58);
+    finalAlpha = clamp(finalAlpha, 0.0, 0.92);
 
     gl_FragColor = vec4(clamp(toneMapped, 0.0, 1.0), finalAlpha);
   }
