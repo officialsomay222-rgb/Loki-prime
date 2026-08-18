@@ -665,25 +665,6 @@ export default function App() {
         theme={resolvedTheme}
       />
 
-      {/* 2. Awakening Overlays */}
-      {awakening && (
-        <div className="fixed inset-0 z-[100000] pointer-events-none overflow-hidden">
-          {/* Shockwave rendered strictly behind the avatar container */}
-          <WebGLShockwave
-            originX={
-              typeof window !== "undefined" && window.innerWidth > 0
-                ? (awakening.startX + (awakening.width || 40) / 2) / window.innerWidth
-                : 0.85
-            }
-            originY={
-              typeof window !== "undefined" && window.innerHeight > 0
-                ? 1.0 - (awakening.startY + (awakening.height || 40) / 2) / window.innerHeight
-                : 0.92
-            }
-          />
-        </div>
-      )}
-
       {/* Apps Modal */}
       <AppsModal
         isOpen={isAppsOpen}
@@ -1057,14 +1038,14 @@ export default function App() {
               ) : (
                 <>
                   {renderedMessages}
-                  <div ref={messagesEndRef} className="h-32 sm:h-40 shrink-0" />
+                  <div ref={messagesEndRef} className="h-52 sm:h-64 shrink-0 pointer-events-none" />
                 </>
               )}
             </div>
           </div>
 
           {/* Scroll to Bottom Button Container */}
-          <div className={`absolute bottom-32 left-0 right-0 w-full ${appWidthClass} mx-auto z-30 pointer-events-none`}>
+          <div className={`absolute bottom-36 sm:bottom-40 left-0 right-0 w-full ${appWidthClass} mx-auto z-30 pointer-events-none`}>
             <AnimatePresence>
               {showScrollToBottom &&
                 currentSession &&
@@ -1116,6 +1097,24 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* Awakening Shockwave Overlay (Overlays entire screen and all UI components) */}
+      {awakening && (
+        <div className="fixed inset-0 z-[999999] pointer-events-none overflow-hidden">
+          <WebGLShockwave
+            originX={
+              typeof window !== "undefined" && window.innerWidth > 0
+                ? (awakening.startX + (awakening.width || 40) / 2) / window.innerWidth
+                : 0.85
+            }
+            originY={
+              typeof window !== "undefined" && window.innerHeight > 0
+                ? 1.0 - (awakening.startY + (awakening.height || 40) / 2) / window.innerHeight
+                : 0.92
+            }
+          />
+        </div>
+      )}
     </motion.div>
   );
 }

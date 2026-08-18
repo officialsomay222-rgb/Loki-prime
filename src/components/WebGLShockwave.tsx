@@ -20,87 +20,112 @@ const fragmentShaderSource = `
   uniform float u_waveGlow;
   uniform float u_particleSpeed;
 
+  // Authentic Natural Rainbow Spectral Function (ROYGBIV with deep vivid saturation)
+  vec3 getAuthenticRainbow(float t) {
+    t = clamp(t, 0.0, 1.0);
+    // Smooth 7-segment true rainbow chromatic curve (Red -> Orange -> Yellow -> Green -> Cyan -> Blue -> Violet)
+    if (t < 0.166) {
+      float f = t / 0.166;
+      return mix(vec3(1.00, 0.05, 0.15), vec3(1.00, 0.45, 0.00), f); // Deep Crimson Red -> Radiant Vivid Orange
+    } else if (t < 0.333) {
+      float f = (t - 0.166) / 0.167;
+      return mix(vec3(1.00, 0.45, 0.00), vec3(1.00, 0.90, 0.00), f); // Radiant Orange -> Sunburst Golden Yellow
+    } else if (t < 0.500) {
+      float f = (t - 0.333) / 0.167;
+      return mix(vec3(1.00, 0.90, 0.00), vec3(0.00, 0.95, 0.35), f); // Golden Yellow -> Lush Emerald Green
+    } else if (t < 0.666) {
+      float f = (t - 0.500) / 0.166;
+      return mix(vec3(0.00, 0.95, 0.35), vec3(0.00, 0.80, 1.00), f); // Emerald Green -> Vibrant Cerulean Cyan
+    } else if (t < 0.833) {
+      float f = (t - 0.666) / 0.167;
+      return mix(vec3(0.00, 0.80, 1.00), vec3(0.25, 0.20, 1.00), f); // Cerulean Cyan -> Deep Royal Indigo
+    } else {
+      float f = (t - 0.833) / 0.167;
+      return mix(vec3(0.25, 0.20, 1.00), vec3(0.85, 0.05, 0.90), f); // Royal Indigo -> Rich Violet/Magenta
+    }
+  }
+
   void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     float aspect = u_resolution.x / u_resolution.y;
     vec2 p = uv;
     p.x *= aspect;
 
-    vec3 accumColor = vec3(0.0);
-    float accumAlpha = 0.0;
-
-    // 8 Saturated, High-Contrast Cosmic Spectral Wavelengths
-    vec3 cCyan     = vec3(0.00, 0.95, 1.00); // Electric Cyan
-    vec3 cViolet   = vec3(0.55, 0.12, 1.00); // Neon Violet
-    vec3 cPink     = vec3(1.00, 0.02, 0.58); // Synthwave Pink
-    vec3 cGold     = vec3(1.00, 0.74, 0.00); // Solar Flare Gold
-    vec3 cEmerald  = vec3(0.00, 1.00, 0.58); // Matrix Emerald
-    vec3 cAzure    = vec3(0.00, 0.55, 1.00); // High-Voltage Azure
-    vec3 cCoral    = vec3(1.00, 0.22, 0.28); // Supernova Coral
-    vec3 cMagenta  = vec3(0.85, 0.05, 0.95); // Royal Orchid
+    vec3 finalColor = vec3(0.0);
+    float finalAlpha = 0.0;
 
     for (int i = 0; i < 10; i++) {
       float startTime = u_shockwaves[i].z;
       if (startTime <= 0.0) continue;
 
       float age = u_time - startTime;
-      if (age > 0.0 && age < 4.0) {
+      // Majestic 3.0 second slow expansion period
+      if (age > 0.0 && age < 3.2) {
         vec2 center = u_shockwaves[i].xy;
         center.x *= aspect;
 
         float dist = distance(p, center);
         float angle = atan(p.y - center.y, p.x - center.x);
 
-        // Organic micro-ripples and subtle cosmic plasma shimmer
-        float shimmer = sin(angle * 6.0 + age * 4.0) * 0.003;
+        // Subtle optical atmospheric refraction
+        float shimmer = sin(angle * 6.0 + age * 3.5) * 0.0025 + cos(angle * 3.0 - age * 2.5) * 0.0015;
         float effectiveDist = dist + shimmer;
 
-        float currentRadius = age * 0.85 * u_waveSpeed;
-        float baseThick = (0.014 + age * 0.016) * u_waveThickness;
+        // Slow, elegant, majestic wave propagation (~0.46 speed reaches full screen comfortably across 3s)
+        float currentRadius = age * 0.46 * u_waveSpeed;
+        float baseThick = (0.018 + age * 0.016) * u_waveThickness;
 
-        // Smooth origin dampening: eliminates any blinding white spot/blob at initiation
-        float originDamp = smoothstep(0.015, 0.08, currentRadius);
-        // Life fade with smooth attack and gradual dissipation
-        float lifeFade = smoothstep(4.0, 0.0, age) * smoothstep(0.0, 0.06, age);
+        // Smooth origin entry: zero square/milky artifacts at start
+        float originDamp = smoothstep(0.008, 0.06, currentRadius);
+        // Life fade with smooth ease-in and gradual atmospheric dissipation
+        float lifeFade = smoothstep(3.2, 0.0, age) * smoothstep(0.0, 0.08, age);
 
-        // 8 Staggered Harmonic Concentric Wave Layers
-        for (int j = 0; j < 8; j++) {
-          float ringOffset = float(j) * (0.034 + age * 0.008);
+        // Radiant Sun God-Rays (gently shimmers like sunlight through rain droplets)
+        float sunRays = pow(max(0.0, sin(angle * 10.0 + age * 1.5) * cos(angle * 5.0 - age * 2.0)), 6.0);
+        float rayIntensity = sunRays * exp(-dist * 2.2) * 0.28 * originDamp * lifeFade;
+        vec3 rayColor = vec3(1.00, 0.88, 0.45);
+        finalColor += rayColor * rayIntensity;
+        finalAlpha = max(finalAlpha, rayIntensity * 0.40);
+
+        // 7 Pure Optical Rainbow Layers (Red -> Orange -> Yellow -> Green -> Cyan -> Indigo -> Violet)
+        for (int j = 0; j < 7; j++) {
+          float spectralPos = float(j) / 6.0; // 0.0 (Red) to 1.0 (Violet)
+          float ringOffset = float(j) * (0.024 + age * 0.006);
           float ringR = currentRadius - ringOffset;
 
           if (ringR > 0.005) {
             float d = abs(effectiveDist - ringR);
-            float thick = baseThick * (1.0 + float(j) * 0.08);
+            float thick = baseThick * (1.0 + float(j) * 0.06);
 
-            // Crisp Gaussian wavefront profile
+            // Razor-sharp Gaussian wavefront crest
             float ringCore = exp(-pow(d / thick, 2.0));
-            // Controlled outer luminous halo (keeps colors deeply saturated)
-            float auraGlow = exp(-d * 20.0) * 0.50 * u_waveGlow;
+            // High-luminance sunbeam highlight on the leading crest
+            float sunGlint = exp(-pow(d / (thick * 0.25), 2.0)) * 0.75;
+            // Tightly bounded chromatic corona (prevents white haze in center)
+            float corona = exp(-d * 34.0) * 0.40 * u_waveGlow;
 
-            float intensity = (ringCore * 0.85 + auraGlow) * originDamp * lifeFade;
+            float intensity = (ringCore + corona) * originDamp * lifeFade;
 
-            vec3 ringColor;
-            if (j == 0) ringColor = cCyan;
-            else if (j == 1) ringColor = cViolet;
-            else if (j == 2) ringColor = cPink;
-            else if (j == 3) ringColor = cGold;
-            else if (j == 4) ringColor = cEmerald;
-            else if (j == 5) ringColor = cAzure;
-            else if (j == 6) ringColor = cCoral;
-            else ringColor = cMagenta;
+            // Deep authentic optical rainbow color for this exact band
+            vec3 spectralColor = getAuthenticRainbow(spectralPos);
 
-            accumColor += ringColor * intensity;
-            accumAlpha += intensity * 0.60;
+            // Shimmering golden sun specular highlight on the crest
+            vec3 ringColor = mix(spectralColor, vec3(1.00, 0.98, 0.88), sunGlint * 0.48);
+
+            // Rich chromatic accumulation
+            finalColor += ringColor * intensity * 1.5;
+            float layerAlpha = (ringCore * 0.88 + sunGlint * 0.45 + corona * 0.30) * originDamp * lifeFade;
+            finalAlpha = max(finalAlpha, layerAlpha);
           }
         }
       }
     }
 
-    // Film-grade soft tone mapping: completely prevents white blowout & keeps rich colors
-    vec3 toneMappedColor = accumColor / (1.0 + accumColor * 0.45);
-    float finalAlpha = clamp(accumAlpha, 0.0, 0.80);
+    // High Dynamic Range Tone-Mapping: preserves deep saturated rainbow color depth while providing solar brightness
+    vec3 toneMapped = (finalColor * (1.0 + finalColor * 0.30)) / (1.0 + finalColor * 0.60);
+    finalAlpha = clamp(finalAlpha, 0.0, 0.90);
 
-    gl_FragColor = vec4(toneMappedColor, finalAlpha);
+    gl_FragColor = vec4(clamp(toneMapped, 0.0, 1.0), finalAlpha);
   }
 `;
 
@@ -291,21 +316,19 @@ export const WebGLShockwave = forwardRef<WebGLCanvasRef, WebGLCanvasProps>(({ co
     const ox = typeof originX === 'number' ? originX : 0.85;
     const oy = typeof originY === 'number' ? originY : 0.92;
 
-    // Trigger primary wave immediately behind the logo
+    // Trigger primary slow majestic wave
     triggerShockwave(ox, oy);
 
-    // Cascading harmonic ripples spaced gracefully
-    const t1 = setTimeout(() => triggerShockwave(ox, oy), 280);
-    const t2 = setTimeout(() => triggerShockwave(ox, oy), 620);
+    // Harmonic follow-up pulse spaced smoothly
+    const t1 = setTimeout(() => triggerShockwave(ox, oy), 450);
 
     return () => {
       clearTimeout(t1);
-      clearTimeout(t2);
     };
   }, [originX, originY]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[998] overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none z-[999999] overflow-hidden">
       <canvas
         ref={canvasRef}
         className="w-full h-full block"

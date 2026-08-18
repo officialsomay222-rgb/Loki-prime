@@ -20,80 +20,94 @@ const fragmentShaderSource = `
   uniform float u_waveGlow;
   uniform float u_particleSpeed;
 
+  vec3 getAuthenticRainbow(float t) {
+    t = clamp(t, 0.0, 1.0);
+    if (t < 0.166) {
+      float f = t / 0.166;
+      return mix(vec3(1.00, 0.05, 0.15), vec3(1.00, 0.45, 0.00), f);
+    } else if (t < 0.333) {
+      float f = (t - 0.166) / 0.167;
+      return mix(vec3(1.00, 0.45, 0.00), vec3(1.00, 0.90, 0.00), f);
+    } else if (t < 0.500) {
+      float f = (t - 0.333) / 0.167;
+      return mix(vec3(1.00, 0.90, 0.00), vec3(0.00, 0.95, 0.35), f);
+    } else if (t < 0.666) {
+      float f = (t - 0.500) / 0.166;
+      return mix(vec3(0.00, 0.95, 0.35), vec3(0.00, 0.80, 1.00), f);
+    } else if (t < 0.833) {
+      float f = (t - 0.666) / 0.167;
+      return mix(vec3(0.00, 0.80, 1.00), vec3(0.25, 0.20, 1.00), f);
+    } else {
+      float f = (t - 0.833) / 0.167;
+      return mix(vec3(0.25, 0.20, 1.00), vec3(0.85, 0.05, 0.90), f);
+    }
+  }
+
   void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     float aspect = u_resolution.x / u_resolution.y;
     vec2 p = uv;
     p.x *= aspect;
 
-    vec3 accumColor = vec3(0.0);
-    float accumAlpha = 0.0;
-
-    // 8 Saturated, High-Contrast Cosmic Spectral Wavelengths
-    vec3 cCyan     = vec3(0.00, 0.95, 1.00); // Electric Cyan
-    vec3 cViolet   = vec3(0.55, 0.12, 1.00); // Neon Violet
-    vec3 cPink     = vec3(1.00, 0.02, 0.58); // Synthwave Pink
-    vec3 cGold     = vec3(1.00, 0.74, 0.00); // Solar Flare Gold
-    vec3 cEmerald  = vec3(0.00, 1.00, 0.58); // Matrix Emerald
-    vec3 cAzure    = vec3(0.00, 0.55, 1.00); // High-Voltage Azure
-    vec3 cCoral    = vec3(1.00, 0.22, 0.28); // Supernova Coral
-    vec3 cMagenta  = vec3(0.85, 0.05, 0.95); // Royal Orchid
+    vec3 finalColor = vec3(0.0);
+    float finalAlpha = 0.0;
 
     for (int i = 0; i < 10; i++) {
       float startTime = u_shockwaves[i].z;
       if (startTime <= 0.0) continue;
 
       float age = u_time - startTime;
-      if (age > 0.0 && age < 4.0) {
+      if (age > 0.0 && age < 3.2) {
         vec2 center = u_shockwaves[i].xy;
         center.x *= aspect;
 
         float dist = distance(p, center);
         float angle = atan(p.y - center.y, p.x - center.x);
 
-        float shimmer = sin(angle * 6.0 + age * 4.0) * 0.003;
+        float shimmer = sin(angle * 6.0 + age * 3.5) * 0.0025 + cos(angle * 3.0 - age * 2.5) * 0.0015;
         float effectiveDist = dist + shimmer;
 
-        float currentRadius = age * 0.85 * u_waveSpeed;
-        float baseThick = (0.014 + age * 0.016) * u_waveThickness;
+        float currentRadius = age * 0.46 * u_waveSpeed;
+        float baseThick = (0.018 + age * 0.016) * u_waveThickness;
 
-        float originDamp = smoothstep(0.015, 0.08, currentRadius);
-        float lifeFade = smoothstep(4.0, 0.0, age) * smoothstep(0.0, 0.06, age);
+        float originDamp = smoothstep(0.008, 0.06, currentRadius);
+        float lifeFade = smoothstep(3.2, 0.0, age) * smoothstep(0.0, 0.08, age);
 
-        for (int j = 0; j < 8; j++) {
-          float ringOffset = float(j) * (0.034 + age * 0.008);
+        float sunRays = pow(max(0.0, sin(angle * 10.0 + age * 1.5) * cos(angle * 5.0 - age * 2.0)), 6.0);
+        float rayIntensity = sunRays * exp(-dist * 2.2) * 0.28 * originDamp * lifeFade;
+        vec3 rayColor = vec3(1.00, 0.88, 0.45);
+        finalColor += rayColor * rayIntensity;
+        finalAlpha = max(finalAlpha, rayIntensity * 0.40);
+
+        for (int j = 0; j < 7; j++) {
+          float spectralPos = float(j) / 6.0;
+          float ringOffset = float(j) * (0.024 + age * 0.006);
           float ringR = currentRadius - ringOffset;
 
           if (ringR > 0.005) {
             float d = abs(effectiveDist - ringR);
-            float thick = baseThick * (1.0 + float(j) * 0.08);
+            float thick = baseThick * (1.0 + float(j) * 0.06);
 
             float ringCore = exp(-pow(d / thick, 2.0));
-            float auraGlow = exp(-d * 20.0) * 0.50 * u_waveGlow;
+            float sunGlint = exp(-pow(d / (thick * 0.25), 2.0)) * 0.75;
+            float corona = exp(-d * 34.0) * 0.40 * u_waveGlow;
 
-            float intensity = (ringCore * 0.85 + auraGlow) * originDamp * lifeFade;
+            float intensity = (ringCore + corona) * originDamp * lifeFade;
+            vec3 spectralColor = getAuthenticRainbow(spectralPos);
+            vec3 ringColor = mix(spectralColor, vec3(1.00, 0.98, 0.88), sunGlint * 0.48);
 
-            vec3 ringColor;
-            if (j == 0) ringColor = cCyan;
-            else if (j == 1) ringColor = cViolet;
-            else if (j == 2) ringColor = cPink;
-            else if (j == 3) ringColor = cGold;
-            else if (j == 4) ringColor = cEmerald;
-            else if (j == 5) ringColor = cAzure;
-            else if (j == 6) ringColor = cCoral;
-            else ringColor = cMagenta;
-
-            accumColor += ringColor * intensity;
-            accumAlpha += intensity * 0.60;
+            finalColor += ringColor * intensity * 1.5;
+            float layerAlpha = (ringCore * 0.88 + sunGlint * 0.45 + corona * 0.30) * originDamp * lifeFade;
+            finalAlpha = max(finalAlpha, layerAlpha);
           }
         }
       }
     }
 
-    vec3 toneMappedColor = accumColor / (1.0 + accumColor * 0.45);
-    float finalAlpha = clamp(accumAlpha, 0.0, 0.80);
+    vec3 toneMapped = (finalColor * (1.0 + finalColor * 0.30)) / (1.0 + finalColor * 0.60);
+    finalAlpha = clamp(finalAlpha, 0.0, 0.90);
 
-    gl_FragColor = vec4(toneMappedColor, finalAlpha);
+    gl_FragColor = vec4(clamp(toneMapped, 0.0, 1.0), finalAlpha);
   }
 `;
 
@@ -286,17 +300,15 @@ export const ShockwaveOnly = forwardRef<WebGLCanvasRef, ShockwaveOnlyProps>(({ c
 
     triggerShockwave(ox, oy);
 
-    const t1 = setTimeout(() => triggerShockwave(ox, oy), 280);
-    const t2 = setTimeout(() => triggerShockwave(ox, oy), 620);
+    const t1 = setTimeout(() => triggerShockwave(ox, oy), 450);
 
     return () => {
       clearTimeout(t1);
-      clearTimeout(t2);
     };
   }, [originX, originY]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[998] overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none z-[999999] overflow-hidden">
       <canvas
         ref={canvasRef}
         className="w-full h-full block"

@@ -34,13 +34,15 @@ export const AvatarShockwave: React.FC<AvatarShockwaveProps> = ({ isActive }) =>
 
     resize();
 
-    // Cosmic saturated aura colors: Cyan -> Purple -> Neon Pink -> Amber -> Emerald
-    const colorStops = [
-      { r: 0, g: 242, b: 255 },   // Cyan
-      { r: 189, g: 0, b: 255 },   // Purple
-      { r: 255, g: 0, b: 120 },   // Neon Pink
-      { r: 255, g: 190, b: 0 },   // Amber
-      { r: 0, g: 255, b: 140 },   // Emerald
+    // Vibrant 7-Spectrum Rainbow Colors: Red -> Orange -> Yellow -> Green -> Cyan -> Violet -> Magenta
+    const rainbowStops = [
+      { r: 255, g: 26, b: 80 },    // Electric Ruby Red
+      { r: 255, g: 130, b: 0 },    // Solar Orange
+      { r: 255, g: 235, b: 0 },    // Laser Gold Yellow
+      { r: 0, g: 255, b: 120 },    // Neon Emerald Green
+      { r: 0, g: 242, b: 255 },    // Quantum Cyan
+      { r: 138, g: 43, b: 226 },   // Hyper Violet
+      { r: 255, g: 0, b: 160 },    // Synth Magenta
     ];
 
     const render = () => {
@@ -55,32 +57,31 @@ export const AvatarShockwave: React.FC<AvatarShockwaveProps> = ({ isActive }) =>
 
       // Target intensity based on active state
       const targetIntensity = isActiveRef.current ? 1.0 : 0.0;
-      intensityRef.current += (targetIntensity - intensityRef.current) * 0.12;
+      intensityRef.current += (targetIntensity - intensityRef.current) * 0.15;
 
-      phaseRef.current += 0.035;
+      phaseRef.current += 0.045;
       const phase = phaseRef.current;
 
       if (intensityRef.current > 0.005) {
         const intensity = intensityRef.current;
 
-        // Draw multiple smooth circular harmonic chromatic wave rings
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
 
-        for (let ring = 0; ring < 3; ring++) {
-          const ringPhase = phase + ring * (Math.PI / 1.5);
-          const colorIdx = ring % colorStops.length;
-          const nextColorIdx = (ring + 1) % colorStops.length;
-          const c1 = colorStops[colorIdx];
-          const c2 = colorStops[nextColorIdx];
+        for (let ring = 0; ring < 4; ring++) {
+          const ringPhase = phase + ring * (Math.PI / 2.0);
+          const colorIdx = (Math.floor(phase * 1.5) + ring) % rainbowStops.length;
+          const nextColorIdx = (colorIdx + 1) % rainbowStops.length;
+          const c1 = rainbowStops[colorIdx];
+          const c2 = rainbowStops[nextColorIdx];
 
-          const radius = baseRadius + Math.sin(ringPhase * 2.0) * (2.5 + ring * 1.5) * intensity;
+          const radius = baseRadius + Math.sin(ringPhase * 2.5) * (2.8 + ring * 1.8) * intensity;
 
           ctx.beginPath();
-          const segments = 48;
+          const segments = 56;
           for (let i = 0; i <= segments; i++) {
             const angle = (i / segments) * Math.PI * 2;
-            const waveDisplacement = Math.sin(angle * 3 + ringPhase) * (1.5 + ring) * intensity;
+            const waveDisplacement = Math.sin(angle * 4 + ringPhase) * (1.8 + ring * 0.8) * intensity;
             const r = radius + waveDisplacement;
             const x = centerX + Math.cos(angle) * r;
             const y = centerY + Math.sin(angle) * r;
@@ -93,19 +94,20 @@ export const AvatarShockwave: React.FC<AvatarShockwaveProps> = ({ isActive }) =>
           }
           ctx.closePath();
 
-          // Soft ring stroke with medium opacity
+          // Luminous vibrant rainbow gradient
+          const angleOffset = phase + ring * 0.5;
           const grad = ctx.createLinearGradient(
-            centerX - radius,
-            centerY - radius,
-            centerX + radius,
-            centerY + radius
+            centerX + Math.cos(angleOffset) * radius,
+            centerY + Math.sin(angleOffset) * radius,
+            centerX - Math.cos(angleOffset) * radius,
+            centerY - Math.sin(angleOffset) * radius
           );
-          grad.addColorStop(0, `rgba(${c1.r}, ${c1.g}, ${c1.b}, ${0.45 * intensity})`);
-          grad.addColorStop(0.5, `rgba(${c2.r}, ${c2.g}, ${c2.b}, ${0.55 * intensity})`);
-          grad.addColorStop(1, `rgba(${c1.r}, ${c1.g}, ${c1.b}, ${0.45 * intensity})`);
+          grad.addColorStop(0, `rgba(${c1.r}, ${c1.g}, ${c1.b}, ${0.65 * intensity})`);
+          grad.addColorStop(0.5, `rgba(${c2.r}, ${c2.g}, ${c2.b}, ${0.80 * intensity})`);
+          grad.addColorStop(1, `rgba(${c1.r}, ${c1.g}, ${c1.b}, ${0.65 * intensity})`);
 
           ctx.strokeStyle = grad;
-          ctx.lineWidth = (2.0 + ring * 0.8) * intensity;
+          ctx.lineWidth = (2.2 + ring * 0.9) * intensity;
           ctx.stroke();
         }
 
@@ -135,3 +137,4 @@ export const AvatarShockwave: React.FC<AvatarShockwaveProps> = ({ isActive }) =>
     </div>
   );
 };
+export default AvatarShockwave;
