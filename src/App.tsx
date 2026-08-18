@@ -383,15 +383,40 @@ export default function App() {
     return result;
   }, [sessions, timelineSearchQuery]);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when messages change, stream content arrives, or response finishes loading fully
   useEffect(() => {
-    if (autoScroll) {
-      messagesEndRef.current?.scrollIntoView({
-        behavior: "auto",
-        block: "end",
-      });
+    if (autoScroll && currentSession && currentSession.messages.length > 0) {
+      const scrollToBottom = () => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({
+            top: scrollContainerRef.current.scrollHeight,
+            behavior: isLoading ? "auto" : "smooth",
+          });
+        }
+        messagesEndRef.current?.scrollIntoView({
+          behavior: isLoading ? "auto" : "smooth",
+          block: "end",
+        });
+      };
+
+      scrollToBottom();
+      const raf = requestAnimationFrame(scrollToBottom);
+      const timer1 = setTimeout(scrollToBottom, 60);
+      const timer2 = setTimeout(scrollToBottom, 200);
+
+      return () => {
+        cancelAnimationFrame(raf);
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
     }
-  }, [currentSession?.messages.length, currentSessionId, autoScroll]);
+  }, [
+    currentSession?.messages.length,
+    currentSession?.messages[currentSession.messages.length - 1]?.content,
+    isLoading,
+    currentSessionId,
+    autoScroll,
+  ]);
 
   // Use IntersectionObserver to toggle scroll-to-bottom button
   useEffect(() => {
@@ -416,7 +441,7 @@ export default function App() {
       observer.unobserve(target);
       observer.disconnect();
     };
-  }, [currentSession?.messages.length, currentSessionId]);
+  }, [currentSession?.messages.length, currentSessionId, isLoading]);
 
   const handleSetModelMode = useCallback((mode: string) => {
     setModelMode(mode as any);
@@ -514,7 +539,8 @@ export default function App() {
   const rowVirtualizer = useVirtualizer({
     count: currentSession?.messages.length || 0,
     getScrollElement: () => scrollContainerRef.current,
-    estimateSize: () => 100, // Reasonable fallback, will adjust dynamically
+    estimateSize: () => 140, // Responsive baseline for chat bubbles
+    overscan: 5,
   });
 
   const renderedMessages = (
@@ -1062,6 +1088,12 @@ export default function App() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 20, scale: 0.8 }}
                     onClick={() => {
+                      if (scrollContainerRef.current) {
+                        scrollContainerRef.current.scrollTo({
+                          top: scrollContainerRef.current.scrollHeight,
+                          behavior: "smooth",
+                        });
+                      }
                       messagesEndRef.current?.scrollIntoView({
                         behavior: "smooth",
                         block: "end",

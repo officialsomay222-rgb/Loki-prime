@@ -9,8 +9,7 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#08080c" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="color-scheme" content="light dark" />
     <style>
       html, body {
@@ -21,6 +20,8 @@
         background-color: #08080c;
         overflow: hidden; /* Prevent scroll on body, handle in app */
         box-sizing: border-box;
+        touch-action: manipulation;
+        overscroll-behavior: none;
       }
       *, *:before, *:after {
         box-sizing: inherit;
@@ -54,22 +55,6 @@
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // Prevent pinch-to-zoom
-      document.addEventListener('gesturestart', function (e) {
-        e.preventDefault();
-      });
-      
-      // Prevent double-tap to zoom
-      let lastTouchEnd = 0;
-      document.addEventListener('touchend', function (event) {
-        const now = (new Date()).getTime();
-        if (now - lastTouchEnd <= 300) {
-          event.preventDefault();
-        }
-        lastTouchEnd = now;
-      }, false);
-    </script>
   </body>
 </html>
 
