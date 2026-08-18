@@ -1,0 +1,6 @@
+{
+  "name": "LOKI PRIME X",
+  "description": "Advanced AI Interface - The Awakening",
+  "requestFramePermissions": ["microphone", "camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

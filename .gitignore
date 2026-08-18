@@ -1,0 +1,16 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# === SYSTEM OVERRIDE: BLOCK GENERATED SPAM ===
+android/app/src/main/assets/capacitor.*.json
+ios/App/App/Assets.xcassets/
+capacitor-assets-output/
+*.png.backup
+dev-dist/
+android/app/capacitor.build.gradle\nandroid/capacitor.settings.gradle

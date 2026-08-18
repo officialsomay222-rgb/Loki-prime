@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" />
+    <title>loki X prime</title>
+    <link rel="icon" href="https://i.ibb.co/5XjVRg3S/Picsart-26-03-07-20-42-18-789.png" />
+    <link rel="apple-touch-icon" href="https://i.ibb.co/5XjVRg3S/Picsart-26-03-07-20-42-18-789.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#08080c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="color-scheme" content="light dark" />
+    <style>
+      html, body {
+        height: 100dvh;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #08080c;
+        overflow: hidden; /* Prevent scroll on body, handle in app */
+        box-sizing: border-box;
+      }
+      *, *:before, *:after {
+        box-sizing: inherit;
+      }
+      #root {
+        height: 100dvh;
+        width: 100%;
+        isolation: isolate;
+      }
+      body {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        /* Remove body padding, let React handle safe areas internally */
+        padding: 0;
+      }
+      input, textarea {
+        -webkit-user-select: auto !important;
+        user-select: auto !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100dvh; background-color: #08080c; color: #6b6b80; font-family: 'Montserrat', sans-serif; text-align: center; padding: 20px;">
+        <div style="width: 40px; height: 40px; border: 2px solid #00f2ff; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+        <p style="letter-spacing: 4px; font-size: 12px; font-weight: bold; margin: 0;">INITIALIZING CORE...</p>
+        <style>
+          @keyframes spin { to { transform: rotate(360deg); } }
+        </style>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Prevent pinch-to-zoom
+      document.addEventListener('gesturestart', function (e) {
+        e.preventDefault();
+      });
+      
+      // Prevent double-tap to zoom
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', function (event) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+          event.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, false);
+    </script>
+  </body>
+</html>
+
