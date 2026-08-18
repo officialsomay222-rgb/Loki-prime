@@ -1,16 +1,32 @@
 {
   "name": "Loki X Prime",
   "short_name": "Loki X Prime",
+  "description": "Loki X Prime - Awakened AI Intelligence",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
-  "background_color": "#050508",
-  "theme_color": "#050508",
+  "orientation": "portrait",
+  "background_color": "#08080c",
+  "theme_color": "#08080c",
+  "categories": ["productivity", "utilities", "education"],
   "icons": [
     {
-      "src": "/icon.png",
+      "src": "/Picsart_26-03-05_20-52-27-601.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.webp",
+      "type": "image/webp",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.webp",
+      "type": "image/webp",
+      "sizes": "512x512",
+      "purpose": "any"
     }
   ]
 }

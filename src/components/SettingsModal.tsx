@@ -5,9 +5,12 @@ import {
   Shield, Database, LogOut, Trash2, Download, ChevronDown, ChevronRight, 
   MessageSquare, Bell, History, Info, HelpCircle, FileText, Lock, Eye, 
   MousePointer2, Smartphone, Moon, Sun, Cloud, Keyboard, XCircle, CheckCircle, 
-  Circle, Maximize, Minimize, Square, Box, Palette, Droplets, Wind, Activity, Send, ArrowRight, Rocket
+  Circle, Maximize, Minimize, Square, Box, Palette, Droplets, Wind, Activity, Send, ArrowRight, Rocket,
+  DownloadCloud, Share2, Check
 } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
+import { usePWAInstall } from '../hooks/usePWAInstall';
+import { toast } from 'sonner';
 
 import { TermsOverlay } from './TermsOverlay';
 import { PrivacyOverlay } from './PrivacyOverlay';
@@ -251,8 +254,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showPicker, setShowPicker] = useState<{ label: string, options: any[], value: any, onChange: (val: any) => void, rect?: DOMRect } | null>(null);
   const [showAssistantIntro, setShowAssistantIntro] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isInstallable, isInstalled, isIOS, installApp } = usePWAInstall();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleInstallPWA = async () => {
+    if (isInstalled) {
+      toast.success("Loki X Prime is already installed on your device!");
+      return;
+    }
+    if (isIOS) {
+      toast.info("To install on iOS: tap the Share button in Safari, then select 'Add to Home Screen'.");
+      return;
+    }
+    if (isInstallable) {
+      const installed = await installApp();
+      if (installed) {
+        toast.success("Loki X Prime installed successfully!");
+      }
+    } else {
+      toast.info("To install: Open browser menu (⋮) and tap 'Install app' or 'Add to Home screen'.");
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -441,8 +464,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
                       { label: 'Minimal', value: 'minimal', icon: Circle },
                       { label: 'Retro', value: 'retro', icon: Square }
                     ]}
-                    noBorder
                   />
+                  <SettingItem 
+                    icon={DownloadCloud} 
+                    label="Install on Home Screen" 
+                    subLabel={isInstalled ? "App is already installed" : "Install as PWA on Home Screen"}
+                    onClick={handleInstallPWA}
+                    noBorder
+                  >
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-cyan-500/10 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 rounded-full text-xs font-bold border border-cyan-500/30">
+                      {isInstalled ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Installed</span>
+                        </>
+                      ) : (
+                        <>
+                          <DownloadCloud className="w-3.5 h-3.5" />
+                          <span>Install</span>
+                        </>
+                      )}
+                    </div>
+                  </SettingItem>
                 </SettingSection>
 
                 {/* Intelligence Section */}

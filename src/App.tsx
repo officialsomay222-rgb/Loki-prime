@@ -57,7 +57,10 @@ import {
   LogOut,
   LogIn,
   ArrowDown,
+  DownloadCloud,
 } from "lucide-react";
+import { usePWAInstall } from "./hooks/usePWAInstall";
+import { toast } from "sonner";
 
 const EMPTY_ARRAY: any[] = [];
 declare global {
@@ -94,6 +97,27 @@ export default function App() {
       ? !localStorage.getItem("loki_hasSeenWelcome")
       : false;
   });
+  const { isInstallable, isInstalled, isIOS, installApp } = usePWAInstall();
+
+  const handleSidebarPWAInstall = async () => {
+    if (isInstalled) {
+      toast.success("Loki X Prime is already installed on your device!");
+      return;
+    }
+    if (isIOS) {
+      toast.info("To install on iOS: tap the Share button in Safari, then select 'Add to Home Screen'.");
+      return;
+    }
+    if (isInstallable) {
+      const installed = await installApp();
+      if (installed) {
+        toast.success("Loki X Prime installed successfully!");
+      }
+    } else {
+      toast.info("To install: Open browser menu (⋮) and tap 'Install app' or 'Add to Home screen'.");
+    }
+  };
+
   const isSettingsOpen = activeModal === "settings";
   const isAppsOpen = activeModal === "apps";
   const isCommandPaletteOpen = activeModal === "commands";
@@ -630,7 +654,7 @@ export default function App() {
         ease: [0.25, 1, 0.5, 1], // Custom sleek easing
         opacity: { duration: 0.8 }
       }}
-      className={`app-wrapper ${theme} ${isAwakened ? "awakened-mode" : ""} ${fontClass}`}
+      className={`app-wrapper ${resolvedTheme} ${isAwakened ? "awakened-mode" : ""} ${fontClass}`}
     >
       <CommandPalette isOpen={isCommandPaletteOpen} onClose={closeModal} />
       <NetworkStatusIndicator />
@@ -845,6 +869,15 @@ export default function App() {
             <motion.button
               whileTap={{ scale: 0.97 }}
               whileHover={{ filter: "brightness(1.2)" }}
+              onClick={handleSidebarPWAInstall}
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all border border-transparent hover:border-cyan-500/20"
+            >
+              <DownloadCloud className="w-3.5 h-3.5" />
+              {isInstalled ? "APP INSTALLED" : "INSTALL ON HOME"}
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              whileHover={{ filter: "brightness(1.2)" }}
               onClick={() => openModal("apps")}
               className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-bold text-slate-600 dark:text-[#888] hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-white/50 dark:hover:bg-white/5 rounded-lg transition-all border border-transparent hover:border-slate-200/50 dark:hover:border-white/5"
             >
@@ -869,27 +902,27 @@ export default function App() {
         >
           {/* Header */}
           <header
-            className={`absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-3 sm:px-6 border-b border-slate-200 dark:border-white/5 backdrop-blur-md premium-shadow z-30 shrink-0 ${resolvedTheme === "light" ? (isAwakened ? "bg-white/90" : "bg-white/80") : "bg-[#08080c]/80"}`}
+            className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-3 sm:px-6 bg-transparent z-30 shrink-0 pointer-events-none select-none"
           >
-            <div className="flex items-center gap-2 sm:gap-4 flex-1">
+            <div className="flex items-center gap-2 sm:gap-4 flex-1 pointer-events-auto">
               {!isSidebarOpen && (
                 <button
                   onClick={() => setIsSidebarOpen(true)}
                   aria-label="Open Sidebar"
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-white shadow-sm transition-all active:scale-95"
+                  className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100/85 dark:bg-white/10 hover:bg-slate-200/90 dark:hover:bg-white/20 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-white shadow-sm backdrop-blur-md transition-all active:scale-95"
                 >
                   <PanelLeftOpen className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               )}
             </div>
 
-            <div className="flex items-center justify-center shrink-0">
+            <div className="flex items-center justify-center shrink-0 pointer-events-auto">
               {isLoading &&
               currentSession?.messages[currentSession.messages.length - 1]
                 ?.role === "model" &&
               currentSession?.messages[currentSession.messages.length - 2]
                 ?.isImage ? (
-                <div className="inline-flex items-center gap-2 sm:gap-3 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 dark:bg-cyan-950/30 backdrop-blur-md shadow-[0_0_15px_rgba(0,242,255,0.2)] animate-in fade-in zoom-in duration-300">
+                <div className="inline-flex items-center gap-2 sm:gap-3 px-4 py-1.5 sm:px-5 sm:py-2 rounded-full border border-cyan-500/40 bg-white/80 dark:bg-[#0a0a10]/80 backdrop-blur-md shadow-[0_0_15px_rgba(0,242,255,0.2)] animate-in fade-in zoom-in duration-300">
                   <div className="flex items-center gap-2 sm:gap-3 font-montserrat font-bold text-xs sm:text-sm tracking-[1px] sm:tracking-[2px] text-cyan-500 dark:text-cyan-400">
                     <div className="w-5 h-2.5 sm:w-8 sm:h-4">
                       <HeaderInfinityLogo />
@@ -912,13 +945,13 @@ export default function App() {
                   </div>
                 </div>
               ) : (
-                <div className="inline-flex items-center gap-2 sm:gap-3 px-3.5 py-1 sm:px-4 sm:py-1.5 rounded-full border border-slate-200/90 dark:border-white/10 bg-slate-100/80 dark:bg-white/[0.06] backdrop-blur-md shadow-sm transition-all hover:border-cyan-500/40">
-                  <h1 className="flex items-center gap-1.5 sm:gap-2.5 font-montserrat font-bold text-sm sm:text-lg tracking-[1px] sm:tracking-[2px] text-slate-900 dark:text-[#e0e0e0]">
+                <div className="inline-flex items-center gap-2 sm:gap-3 px-4 py-1.5 sm:px-5 sm:py-2 rounded-full border border-slate-200/90 dark:border-white/15 bg-white/80 dark:bg-[#0a0a10]/80 backdrop-blur-md shadow-sm transition-all hover:border-cyan-500/40">
+                  <h1 className="flex items-center gap-1.5 sm:gap-2.5 font-montserrat font-bold text-sm sm:text-base tracking-[1.5px] sm:tracking-[2.5px] text-slate-900 dark:text-[#f0f0f5]">
                     <span className="font-extrabold tracking-[1.5px] sm:tracking-[2.5px]">LOKI</span>
-                    <div className="w-6 h-3 sm:w-10 sm:h-5 flex items-center justify-center">
+                    <div className="w-6 h-3 sm:w-9 sm:h-4.5 flex items-center justify-center">
                       <HeaderInfinityLogo />
                     </div>
-                    <span className="text-[0.55rem] sm:text-[0.68rem] tracking-[1.5px] sm:tracking-[2.5px] font-black px-2 py-0.5 rounded-full border border-cyan-500/50 dark:border-[#00f2ff]/50 text-cyan-600 dark:text-[#00f2ff] shadow-[0_0_10px_rgba(0,242,255,0.25)] bg-cyan-500/10">
+                    <span className="text-[0.55rem] sm:text-[0.65rem] tracking-[1.5px] sm:tracking-[2.5px] font-black px-2 py-0.5 rounded-full border border-cyan-500/50 dark:border-[#00f2ff]/50 text-cyan-600 dark:text-[#00f2ff] shadow-[0_0_10px_rgba(0,242,255,0.25)] bg-cyan-500/10">
                       PRIME
                     </span>
                   </h1>
@@ -926,9 +959,9 @@ export default function App() {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 sm:gap-4 flex-1">
+            <div className="flex items-center justify-end gap-2 sm:gap-4 flex-1 pointer-events-auto">
               <div
-                className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full cursor-pointer flex justify-center items-center hover:scale-105 transition-all p-0.5 bg-slate-100 dark:bg-white/10 border border-slate-200/80 dark:border-white/10 shadow-sm ${awakening ? "opacity-0" : "opacity-100"}`}
+                className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full cursor-pointer flex justify-center items-center hover:scale-105 transition-all ${awakening ? "opacity-0" : "opacity-100"}`}
                 title={commanderName}
                 onClick={triggerAwakening}
                 onMouseDown={() => setIsAvatarActive(true)}
@@ -940,15 +973,15 @@ export default function App() {
                 <AvatarShockwave isActive={isAvatarActive} />
                 {(isAwakened || effectAvatar) && (
                   <div
-                    className="absolute -inset-[2px] rounded-full z-[1] opacity-100 animate-spin-aura"
+                    className="absolute -inset-[2.5px] rounded-full z-[1] opacity-100 animate-spin-aura"
                     style={{
                       background:
                         "conic-gradient(from 0deg, #ff0000, #ff7f00, #ffff00, #00ff00, #00f0ff, #bd00ff, #ff00ff, #ff0000)",
-                      boxShadow: "0 0 15px rgba(255, 255, 255, 0.3)",
+                      boxShadow: "0 0 15px rgba(255, 255, 255, 0.4)",
                     }}
                   ></div>
                 )}
-                <div className="w-full h-full rounded-full overflow-hidden z-[2] border-2 border-white dark:border-[#08080c] relative shadow-inner">
+                <div className={`w-full h-full rounded-full overflow-hidden z-[2] relative ${(isAwakened || effectAvatar) ? "border-2 border-white dark:border-[#08080c] shadow-md" : "border border-slate-200 dark:border-white/20 shadow-sm"}`}>
                   <img
                     src="/Picsart-26-02-28-11-29-26-443.jpg"
                     className="w-full h-full object-cover rounded-full"

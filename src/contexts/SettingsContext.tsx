@@ -581,22 +581,18 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
     const applyTheme = (isDark: boolean) => {
       setResolvedTheme(isDark ? "dark" : "light");
+      const bgColor = isDark ? "#08080c" : "#ffffff";
       if (isDark) {
         document.documentElement.classList.add("dark");
-        document.body.style.backgroundColor = isAwakened
-          ? "#08080c"
-          : "#08080c";
-        document.documentElement.style.backgroundColor = isAwakened
-          ? "#08080c"
-          : "#08080c";
       } else {
         document.documentElement.classList.remove("dark");
-        document.body.style.backgroundColor = isAwakened
-          ? "#ffffff"
-          : "#08080c";
-        document.documentElement.style.backgroundColor = isAwakened
-          ? "#ffffff"
-          : "#08080c";
+      }
+      document.body.style.backgroundColor = bgColor;
+      document.documentElement.style.backgroundColor = bgColor;
+
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) {
+        metaTheme.setAttribute("content", bgColor);
       }
     };
 
