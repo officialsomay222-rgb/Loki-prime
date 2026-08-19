@@ -86,6 +86,12 @@ interface SettingsState {
   messageHoverEffect: MessageHoverEffect;
   sidebarTheme: SidebarTheme;
   inputBoxStyle: InputBoxStyle;
+  waveSpeed: number;
+  waveThickness: number;
+  waveGlow: number;
+  setWaveSpeed: (val: number) => void;
+  setWaveThickness: (val: number) => void;
+  setWaveGlow: (val: number) => void;
   setTheme: (theme: Theme) => void;
   setBgStyle: (bg: BgStyle) => void;
   setCommanderName: (name: string) => void;
@@ -245,6 +251,9 @@ const defaultSettings: Omit<
   messageHoverEffect: "none",
   sidebarTheme: "glass",
   inputBoxStyle: "default",
+  waveSpeed: 1.0,
+  waveThickness: 1.0,
+  waveGlow: 1.0,
 };
 
 const SettingsContext = createContext<SettingsState | undefined>(undefined);
@@ -376,6 +385,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [inputBoxStyle, setInputBoxStyle] = useState<InputBoxStyle>(
     defaultSettings.inputBoxStyle,
   );
+  const [waveSpeed, setWaveSpeed] = useState<number>(defaultSettings.waveSpeed);
+  const [waveThickness, setWaveThickness] = useState<number>(defaultSettings.waveThickness);
+  const [waveGlow, setWaveGlow] = useState<number>(defaultSettings.waveGlow);
 
   const resetSettings = () => {
     setTheme(defaultSettings.theme);
@@ -427,6 +439,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setMessageHoverEffect(defaultSettings.messageHoverEffect);
     setSidebarTheme(defaultSettings.sidebarTheme);
     setInputBoxStyle(defaultSettings.inputBoxStyle);
+    setWaveSpeed(defaultSettings.waveSpeed);
+    setWaveThickness(defaultSettings.waveThickness);
+    setWaveGlow(defaultSettings.waveGlow);
   };
 
   useEffect(() => {
@@ -510,6 +525,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     loadSetting("messageHoverEffect", setMessageHoverEffect as any);
     loadSetting("sidebarTheme", setSidebarTheme as any);
     loadSetting("inputBoxStyle", setInputBoxStyle as any);
+    loadSetting("waveSpeed", (val) => setWaveSpeed(parseFloat(val)));
+    loadSetting("waveThickness", (val) => setWaveThickness(parseFloat(val)));
+    loadSetting("waveGlow", (val) => setWaveGlow(parseFloat(val)));
   }, []);
 
   useEffect(() => {
@@ -575,6 +593,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem("loki_messageHoverEffect", messageHoverEffect);
       localStorage.setItem("loki_sidebarTheme", sidebarTheme);
       localStorage.setItem("loki_inputBoxStyle", inputBoxStyle);
+      localStorage.setItem("loki_waveSpeed", waveSpeed.toString());
+      localStorage.setItem("loki_waveThickness", waveThickness.toString());
+      localStorage.setItem("loki_waveGlow", waveGlow.toString());
     } catch (e) {
       console.error("Failed to save settings to localStorage", e);
     }
@@ -683,6 +704,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     messageHoverEffect,
     sidebarTheme,
     inputBoxStyle,
+    waveSpeed,
+    waveThickness,
+    waveGlow,
   ]);
 
   return (
@@ -740,6 +764,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           messageHoverEffect,
           sidebarTheme,
           inputBoxStyle,
+          waveSpeed,
+          waveThickness,
+          waveGlow,
           setTheme,
           setBgStyle,
           setCommanderName,
@@ -788,6 +815,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           setAvatarShape,
           setMessageShadow,
           setSendButtonIcon,
+          setWaveSpeed,
+          setWaveThickness,
+          setWaveGlow,
         } as any
       }
     >

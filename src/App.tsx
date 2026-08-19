@@ -208,6 +208,9 @@ export default function App() {
     avatarShape,
     messageShadow,
     resetSettings,
+    waveSpeed,
+    waveThickness,
+    waveGlow,
   } = useSettings();
 
   const { awakening, triggerAwakening: originalTriggerAwakening, handleAwakeningResponse } = useAwakening(
@@ -1120,6 +1123,7 @@ export default function App() {
       {awakening && (
         <div className="fixed inset-0 z-[999999] pointer-events-none overflow-hidden">
           <WebGLShockwave
+            config={{ waveSpeed, waveThickness, waveGlow, particleSpeed: 1.0 }}
             originX={
               typeof window !== "undefined" && window.innerWidth > 0
                 ? (awakening.startX + (awakening.width || 40) / 2) / window.innerWidth
