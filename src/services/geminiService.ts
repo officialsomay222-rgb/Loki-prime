@@ -92,6 +92,8 @@ export const generateChatResponse = async (params: {
           }
           if (data.text) {
             yield { text: data.text };
+          } else if (data.thought) {
+            yield { thought: data.thought };
           }
         }
       }

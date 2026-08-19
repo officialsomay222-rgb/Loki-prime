@@ -295,8 +295,14 @@ app.post("/api/chat", async (req, res) => {
         let sourcesAdded = false;
 
         for await (const chunk of responseStream) {
-          if (chunk.text) {
-            res.write(`data: ${JSON.stringify({ text: chunk.text })}\n\n`);
+          if (chunk.candidates?.[0]?.content?.parts) {
+            for (const part of chunk.candidates[0].content.parts) {
+              if (part.thought && part.text) {
+                res.write(`data: ${JSON.stringify({ thought: part.text })}\n\n`);
+              } else if (part.text && !part.thought) {
+                res.write(`data: ${JSON.stringify({ text: part.text })}\n\n`);
+              }
+            }
           }
 
           if (!sourcesAdded && searchGrounding) {
@@ -429,8 +435,14 @@ app.post("/api/chat", async (req, res) => {
           setupSSE();
 
           for await (const chunk of responseStream) {
-            if (chunk.text) {
-              res.write(`data: ${JSON.stringify({ text: chunk.text })}\n\n`);
+            if (chunk.candidates?.[0]?.content?.parts) {
+              for (const part of chunk.candidates[0].content.parts) {
+                if (part.thought && part.text) {
+                  res.write(`data: ${JSON.stringify({ thought: part.text })}\n\n`);
+                } else if (part.text && !part.thought) {
+                  res.write(`data: ${JSON.stringify({ text: part.text })}\n\n`);
+                }
+              }
             }
           }
         }

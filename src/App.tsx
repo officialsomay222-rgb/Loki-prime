@@ -243,6 +243,19 @@ export default function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<ChatInputHandle>(null);
+  const [inputHeight, setInputHeight] = useState(120);
+  const inputWrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!inputWrapperRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setInputHeight(entry.contentRect.height);
+      }
+    });
+    observer.observe(inputWrapperRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -387,6 +400,8 @@ export default function App() {
   }, [sessions, timelineSearchQuery]);
 
   const rowVirtualizer = useVirtualizer({
+    paddingStart: 80,
+    paddingEnd: inputHeight + 80,
     count: currentSession?.messages.length || 0,
     getScrollElement: () => scrollContainerRef.current,
     estimateSize: () => 140, // Responsive baseline for chat bubbles
@@ -432,6 +447,7 @@ export default function App() {
     currentSessionId,
     autoScroll,
     rowVirtualizer.getTotalSize(), // Crucial: trigger scroll when virtual list height changes
+    inputHeight,
   ]);
 
   // Use IntersectionObserver to toggle scroll-to-bottom button
@@ -794,6 +810,7 @@ export default function App() {
           <div
             className="flex-1 overflow-y-auto px-3 py-1 space-y-1 custom-scrollbar touch-pan-y transform-gpu overscroll-contain"
             style={{
+              paddingTop: "calc(4.25rem + env(safe-area-inset-top, 0px))",
               WebkitOverflowScrolling: "touch",
               transform: "translateZ(0)",
               willChange: "transform",
@@ -1052,7 +1069,7 @@ export default function App() {
               ) : (
                 <>
                   {renderedMessages}
-                  <div ref={messagesEndRef} className="h-80 sm:h-96 shrink-0 pointer-events-none" />
+                  <div ref={messagesEndRef} className="shrink-0 pointer-events-none" style={{ height: 1 }} />
                 </>
               )}
             </div>
@@ -1092,6 +1109,7 @@ export default function App() {
 
           {/* Input Area - Floating (Absolute) */}
           <div
+            ref={inputWrapperRef}
             className={`absolute bottom-0 left-0 right-0 z-20 w-full ${appWidthClass} mx-auto input-keyboard-safe-area pointer-events-none`}
             style={{
               paddingBottom: "max(5px, env(safe-area-inset-bottom, 0px))",

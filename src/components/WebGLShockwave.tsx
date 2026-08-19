@@ -196,7 +196,30 @@ export const WebGLShockwave = forwardRef<WebGLCanvasRef, WebGLCanvasProps>(({ co
     const render = () => {
       const displayWidth = window.innerWidth;
       const displayHeight = window.innerHeight;
+
+      const currentTime = performance.now() / 1000 - startTimeRef.current;
+      let isActive = false;
+      for (let i = 0; i < shockwavesRef.current.length; i++) {
+        if (currentTime - shockwavesRef.current[i].startTime < 4.0) {
+          isActive = true;
+          break;
+        }
+      }
+
+
+      if (!isActive) {
+        // Clear canvas once before sleeping
+        if (gl.getParameter(gl.COLOR_CLEAR_VALUE)[3] !== 0) {
+           gl.clearColor(0, 0, 0, 0);
+           gl.clear(gl.COLOR_BUFFER_BIT);
+        }
+        animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+
+
       if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+
         canvas.width = displayWidth;
         canvas.height = displayHeight;
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -210,7 +233,6 @@ export const WebGLShockwave = forwardRef<WebGLCanvasRef, WebGLCanvasProps>(({ co
       gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
       
       gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
-      const currentTime = performance.now() / 1000 - startTimeRef.current;
       gl.uniform1f(timeUniformLocation, currentTime);
       
       gl.uniform1f(waveSpeedUniformLocation, configRef.current.waveSpeed);

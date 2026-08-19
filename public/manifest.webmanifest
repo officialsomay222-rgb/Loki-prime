@@ -4,7 +4,7 @@
   "description": "Loki X Prime - Awakened AI Intelligence",
   "start_url": "/",
   "id": "/",
-  "display": "standalone",
+  "display": "minimal-ui",
   "orientation": "portrait-primary",
   "background_color": "#08080c",
   "theme_color": "#08080c",
