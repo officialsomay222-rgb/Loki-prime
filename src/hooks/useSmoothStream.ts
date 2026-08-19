@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 
-// Detect low-end devices (e.g., Exynos 850, old phones)
+// Detect very low-end devices (e.g., Exynos 850, old phones)
 const isLowEndDevice = () => {
   if (typeof window === 'undefined') return false;
   const hardwareConcurrency = navigator.hardwareConcurrency || 4;
   const deviceMemory = (navigator as any).deviceMemory || 4;
-  return hardwareConcurrency <= 4 || deviceMemory <= 4;
+  return hardwareConcurrency < 4 || deviceMemory < 4; // Changed from <= 4 to < 4 to not block standard mobile devices
 };
 
 export function useSmoothStream(
@@ -13,6 +13,9 @@ export function useSmoothStream(
   speed: "slow" | "normal" | "fast",
   enabled: boolean,
 ) {
+  // Start with empty string if enabled, so it types out initially, otherwise start with full content.
+  // Wait, if it's streaming, we want it to type smoothly. If we start at "", it will re-type everything from the start.
+  // Actually, if it's streaming, it's better to start with what we have.
   const [displayedContent, setDisplayedContent] = useState(content);
   const contentRef = useRef(content);
   const displayedRef = useRef(content);
@@ -23,8 +26,8 @@ export function useSmoothStream(
   useEffect(() => {
     contentRef.current = content;
 
-    // Disable typing animation on low-end devices or if disabled by user
-    if (!enabled || isLowEnd.current) {
+    // If disabled by user, just snap to content
+    if (!enabled) {
       setDisplayedContent(content);
       displayedRef.current = content;
       return;
@@ -38,7 +41,7 @@ export function useSmoothStream(
     }
 
     const charsPerTick = speed === "fast" ? 12 : speed === "slow" ? 3 : 6;
-    const updateInterval = 40; // ~25fps, balances smoothness and CPU load
+    const updateInterval = 20; // Fast updates for smoother look
 
     const animate = (timestamp: number) => {
       if (timestamp - lastUpdateRef.current >= updateInterval) {

@@ -397,24 +397,29 @@ export default function App() {
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollTo({
             top: scrollContainerRef.current.scrollHeight,
-            behavior: isLoading ? "auto" : "smooth",
+            behavior: isLoading ? "auto" : "auto", // Always use auto for reliable programmatic scrolling
           });
         }
-        messagesEndRef.current?.scrollIntoView({
-          behavior: isLoading ? "auto" : "smooth",
-          block: "end",
-        });
       };
 
+      // Perform a single reliable scroll
       scrollToBottom();
-      const raf = requestAnimationFrame(scrollToBottom);
-      const timer1 = setTimeout(scrollToBottom, 60);
-      const timer2 = setTimeout(scrollToBottom, 200);
+      
+      // If still loading, we might need one raf to catch rapid DOM updates,
+      // but we do NOT want multiple conflicting smooth scrolls.
+      let rafId: number;
+      let timeoutId: ReturnType<typeof setTimeout>;
+      if (isLoading) {
+         rafId = requestAnimationFrame(scrollToBottom);
+      } else {
+         // When finished loading, do one final exact snap after a short delay 
+         // to ensure images or virtualizer are fully resolved.
+         timeoutId = setTimeout(scrollToBottom, 150);
+      }
 
       return () => {
-        cancelAnimationFrame(raf);
-        clearTimeout(timer1);
-        clearTimeout(timer2);
+        if (rafId) cancelAnimationFrame(rafId);
+        if (timeoutId) clearTimeout(timeoutId);
       };
     }
   }, [
