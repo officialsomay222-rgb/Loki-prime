@@ -850,34 +850,6 @@ export default function App() {
           <div
             className="p-3 border-t border-slate-200/50 dark:border-white/5 space-y-1.5 mt-auto bg-[#f8fafc] dark:bg-[#0a0a0a]"
           >
-            {sessions.length > 0 && (
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                whileHover={{ filter: "brightness(1.2)" }}
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Are you sure you want to clear all timelines?",
-                    )
-                  ) {
-                    clearAllSessions();
-                  }
-                }}
-                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-bold text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all border border-transparent"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                CLEAR ALL TIMELINES
-              </motion.button>
-            )}
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              whileHover={{ filter: "brightness(1.2)" }}
-              onClick={handleSidebarPWAInstall}
-              className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all border border-transparent hover:border-cyan-500/20"
-            >
-              <DownloadCloud className="w-3.5 h-3.5" />
-              {isInstalled ? "APP INSTALLED" : "INSTALL ON HOME"}
-            </motion.button>
             <motion.button
               whileTap={{ scale: 0.97 }}
               whileHover={{ filter: "brightness(1.2)" }}
@@ -1119,7 +1091,7 @@ export default function App() {
           <div
             className={`absolute bottom-0 left-0 right-0 z-20 w-full ${appWidthClass} mx-auto input-keyboard-safe-area pointer-events-none`}
             style={{
-              paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))",
+              paddingBottom: "max(5px, env(safe-area-inset-bottom, 0px))",
               paddingTop: "8px",
             }}
           >
